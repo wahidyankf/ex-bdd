@@ -52,6 +52,8 @@ defmodule ExBdd.BehaviorCase do
 
   use ExUnit.CaseTemplate
 
+  alias ExBdd.Gherkin.Parser
+
   import ExUnit.CaptureIO
 
   using do
@@ -169,7 +171,7 @@ defmodule ExBdd.BehaviorCase do
         file = Enum.at(named_files, index) || unique_feature_path()
 
         source
-        |> ExBdd.Gherkin.Parser.parse(file)
+        |> Parser.parse(file)
         |> Map.put(:file, file)
         |> Map.put(:source, source)
       end)

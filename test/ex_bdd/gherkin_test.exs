@@ -1,7 +1,7 @@
 defmodule ExBdd.Gherkin.ParserTest do
   use ExUnit.Case, async: true
 
-  alias ExBdd.Gherkin.{Background, Feature, Scenario, ScenarioOutline, Step}
+  alias ExBdd.Gherkin.{Background, Feature, Parser, Scenario, ScenarioOutline, Step}
 
   describe "parse/1" do
     test "parses a minimal feature file with one scenario and background" do
@@ -80,7 +80,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         ]
       }
 
-      assert ExBdd.Gherkin.Parser.parse(gherkin) == expected
+      assert Parser.parse(gherkin) == expected
     end
 
     test "parses a feature file with multiple scenarios" do
@@ -155,7 +155,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         ]
       }
 
-      assert ExBdd.Gherkin.Parser.parse(gherkin) == expected
+      assert Parser.parse(gherkin) == expected
     end
   end
 
@@ -175,7 +175,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | 5 | 3 | 8   |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.name == "Calculator"
       assert length(result.scenarios) == 1
@@ -206,7 +206,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | 1 | 2 | 3   |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
       [outline] = result.scenarios
       [examples] = outline.examples
 
@@ -231,7 +231,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | -1 | -2 | -3  |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
       [outline] = result.scenarios
 
       assert length(outline.examples) == 2
@@ -264,7 +264,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | -1 | -2 | -3  |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
       [outline] = result.scenarios
 
       assert outline.tags == ["outline-tag"]
@@ -292,7 +292,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | 1     | one    |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert length(result.scenarios) == 2
       [scenario, outline] = result.scenarios
@@ -320,7 +320,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | Alice |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
       [outline] = result.scenarios
       [step | _] = outline.steps
 
@@ -342,7 +342,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | Alice | 30  |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
       [outline] = result.scenarios
       [step | _] = outline.steps
 
@@ -362,7 +362,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given a step
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.name == "Async Feature Example"
       assert result.tags == ["async"]
@@ -390,7 +390,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | 2 |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert length(result.scenarios) == 2
       [first, second] = result.scenarios
@@ -421,7 +421,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | bar   |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert length(result.scenarios) == 1
       [outline] = result.scenarios
@@ -441,7 +441,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       gherkin =
         "Feature: Windows Feature\r\n\r\nScenario: A scenario\r\n  Given a step\r\n  Then another step\r\n"
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.name == "Windows Feature"
       assert length(result.scenarios) == 1
@@ -458,7 +458,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given a step
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.name == "Ünïcödé Féàtûrè"
       [scenario] = result.scenarios
@@ -475,7 +475,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given #{long_text}
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [scenario] = result.scenarios
       [step] = scenario.steps
@@ -514,7 +514,7 @@ defmodule ExBdd.Gherkin.ParserTest do
 
       for {file, expected_count} <- expected_counts do
         content = File.read!(file)
-        result = ExBdd.Gherkin.Parser.parse(content, file)
+        result = Parser.parse(content, file)
 
         count =
           length(result.scenarios) +
@@ -545,7 +545,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           Then it also works
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert length(result.scenarios) == 2
       assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
@@ -564,7 +564,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given another thing
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
     end
@@ -580,7 +580,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Then step three
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [scenario] = result.scenarios
       assert Enum.map(scenario.steps, & &1.text) == ["step one", "step two", "step three"]
@@ -594,7 +594,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           Given a thing
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.name == "Commented"
       assert length(result.scenarios) == 1
@@ -614,7 +614,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | two   |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [outline] = result.scenarios
       [examples] = outline.examples
@@ -634,7 +634,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given another thing
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
       [_first, second] = result.scenarios
@@ -652,7 +652,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         Given a thing
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [scenario] = result.scenarios
       assert scenario.tags == ["wip", "smoke"]
@@ -670,7 +670,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       """
 
       assert_raise ExBdd.Gherkin.ParseError, ~r/line 6.*Expected a step/s, fn ->
-        ExBdd.Gherkin.Parser.parse(gherkin)
+        Parser.parse(gherkin)
       end
     end
 
@@ -688,7 +688,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | one   |
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [outline] = result.scenarios
       [examples] = outline.examples
@@ -709,7 +709,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           Given a step
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.tags == ["feature-tag"]
       assert result.tag_lines == [0]
@@ -736,7 +736,7 @@ defmodule ExBdd.Gherkin.ParserTest do
             ```
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       [standard, backticks] = result.scenarios
       assert hd(standard.steps).docstring_delimiter == ~s(""")
@@ -754,7 +754,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         # trailing note
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.comments == [
                {0, "# top note"},
@@ -775,7 +775,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         # this is a comment
       """
 
-      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      result = Parser.parse(gherkin)
 
       assert result.comments == [{7, "  # this is a comment"}]
 
@@ -799,7 +799,7 @@ defmodule ExBdd.Gherkin.ParserTest do
     """
 
     test "feature, scenario, step, tag, and datatable lines match the source text" do
-      feature = ExBdd.Gherkin.Parser.parse(@leading_blanks_source)
+      feature = Parser.parse(@leading_blanks_source)
 
       assert feature.line == 3
       assert feature.tag_lines == [2]
@@ -817,8 +817,11 @@ defmodule ExBdd.Gherkin.ParserTest do
       lf = @leading_blanks_source
       crlf = String.replace(lf, "\n", "\r\n")
 
-      assert source_lines(ExBdd.Gherkin.Parser.parse(crlf)) == source_lines(ExBdd.Gherkin.Parser.parse(lf))
-      assert %{feature: 3, scenario: 6, steps: [7]} = source_lines(ExBdd.Gherkin.Parser.parse(crlf))
+      assert source_lines(Parser.parse(crlf)) ==
+               source_lines(Parser.parse(lf))
+
+      assert %{feature: 3, scenario: 6, steps: [7]} =
+               source_lines(Parser.parse(crlf))
     end
 
     test "equivalent .feature and .feature.md sources report the same lines" do
@@ -848,8 +851,10 @@ defmodule ExBdd.Gherkin.ParserTest do
       * When another step
       """
 
-      from_gherkin = gherkin |> ExBdd.Gherkin.Parser.parse("parity.feature") |> source_lines()
-      from_markdown = markdown |> ExBdd.Gherkin.Parser.parse("parity.feature.md") |> source_lines()
+      from_gherkin = gherkin |> Parser.parse("parity.feature") |> source_lines()
+
+      from_markdown =
+        markdown |> Parser.parse("parity.feature.md") |> source_lines()
 
       # The feature line itself is format-specific: in Markdown with Gherkin
       # a blank first line is the (unnamed) feature line, as in the reference.
@@ -871,7 +876,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         this is not valid gherkin
       """
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert Exception.message(error) =~ "Expected a step, table row, doc string, tag"
       assert error.line == 8
@@ -889,7 +894,7 @@ defmodule ExBdd.Gherkin.ParserTest do
             | 1 |
       """
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert Exception.message(error) =~ "2 cells to match the first row, got 1"
       assert error.line == 8
@@ -922,7 +927,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | Lay's   | Plain  |       |
       """
 
-      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [scenario] = Parser.parse(gherkin).scenarios
       [step] = scenario.steps
 
       assert step.datatable == [
@@ -943,7 +948,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           |      |
       """
 
-      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [scenario] = Parser.parse(gherkin).scenarios
 
       assert hd(scenario.steps).datatable == [["note"], [""]]
     end
@@ -960,7 +965,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | Doritos |        |
       """
 
-      [outline] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [outline] = Parser.parse(gherkin).scenarios
       [examples] = outline.examples
 
       assert examples.table_body == [["Doritos", ""]]
@@ -975,7 +980,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | a \| b | c\\d | e\nf | g\h | \n |
       """
 
-      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [scenario] = Parser.parse(gherkin).scenarios
 
       assert hd(scenario.steps).datatable == [["a | b", "c\\d", "e\nf", "g\\h", "\n"]]
     end
@@ -989,7 +994,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | note | stray
       """
 
-      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [scenario] = Parser.parse(gherkin).scenarios
 
       assert hd(scenario.steps).datatable == [["note"]]
     end
@@ -1006,7 +1011,7 @@ defmodule ExBdd.Gherkin.ParserTest do
           | Doritos | Nacho  |
       """
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert error.line == 6
       assert error.column == 5
@@ -1025,7 +1030,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       """
 
       assert_raise ExBdd.Gherkin.ParseError, ~r/1 cell to match the first row, got 2/, fn ->
-        ExBdd.Gherkin.Parser.parse(gherkin)
+        Parser.parse(gherkin)
       end
     end
 
@@ -1042,7 +1047,7 @@ defmodule ExBdd.Gherkin.ParserTest do
             | Doritos |
       """
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert error.line == 9
       assert Exception.message(error) =~ "2 cells to match the first row, got 1"
@@ -1053,7 +1058,7 @@ defmodule ExBdd.Gherkin.ParserTest do
     test "a line the parser cannot read says what it expected there" do
       gherkin = "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n"
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert Exception.message(error) =~
                "Expected a step, table row, doc string, tag, comment or keyword line"
@@ -1064,7 +1069,7 @@ defmodule ExBdd.Gherkin.ParserTest do
     test "the column is where the unreadable line's content starts" do
       gherkin = "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n"
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert {error.line, error.column} == {5, 3}
     end
@@ -1074,7 +1079,7 @@ defmodule ExBdd.Gherkin.ParserTest do
 
       error =
         assert_raise ExBdd.Gherkin.ParseError, fn ->
-          ExBdd.Gherkin.Parser.parse(gherkin, "test/features/broken.feature")
+          Parser.parse(gherkin, "test/features/broken.feature")
         end
 
       assert error.file == "test/features/broken.feature"
@@ -1087,13 +1092,16 @@ defmodule ExBdd.Gherkin.ParserTest do
       gherkin =
         "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n  Given more\n"
 
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> Parser.parse(gherkin) end
 
       assert error.rest == "Invalid line here"
     end
 
     test "a file that is not a feature says so once, at column 1" do
-      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse("Not a feature\n") end
+      error =
+        assert_raise ExBdd.Gherkin.ParseError, fn ->
+          Parser.parse("Not a feature\n")
+        end
 
       assert {error.line, error.column} == {1, 1}
       assert Exception.message(error) =~ "Expected feature"

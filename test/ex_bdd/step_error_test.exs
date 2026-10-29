@@ -1,8 +1,8 @@
 defmodule ExBdd.StepErrorTest do
   use ExUnit.Case
 
-  alias ExBdd.StepError
   alias ExBdd.Gherkin.Step
+  alias ExBdd.StepError
 
   describe "missing_step_definition/4" do
     test "creates error with helpful message for missing step" do

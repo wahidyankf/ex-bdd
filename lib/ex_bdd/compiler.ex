@@ -16,19 +16,31 @@ defmodule ExBdd.Compiler do
   # 6. Hooks are wired in via `ExBdd.Hooks`
 
   alias ExBdd.Discovery
+  alias ExBdd.Gherkin.Pickles
   alias ExBdd.Messages.Emitter
 
   @doc """
   Compiles all discovered features into ExUnit test modules.
+
+  Unlike `ExBdd.verify_features!/1`, compilation does not require a
+  strictly complete corpus: scenarios without an explicit `When`/`Then`
+  and step bindings no discovered scenario uses still compile (undefined
+  steps fail at runtime). Strict behaviour-completeness is available
+  explicitly via `ExBdd.Verifier.verify!/1`.
   """
   @spec compile_features!(keyword()) :: [module()]
   def compile_features!(opts \\ []) do
-    # Discover features and steps
+    opts |> Discovery.discover() |> compile_discovery!(opts)
+  end
+
+  @doc false
+  @spec compile_discovery!(Discovery.DiscoveryResult.t(), keyword()) :: [module()]
+  def compile_discovery!(%Discovery.DiscoveryResult{} = discovery, opts \\ []) do
     %Discovery.DiscoveryResult{
       features: features,
       step_registry: step_registry,
       hook_modules: hook_modules
-    } = Discovery.discover(opts)
+    } = discovery
 
     # Start (or reset) the run-wide coordinator before any test executes
     ExBdd.RunCoordinator.ensure_started()
@@ -37,7 +49,8 @@ defmodule ExBdd.Compiler do
       features,
       step_registry,
       hook_modules,
-      Application.get_env(:ex_bdd, :messages)
+      Application.get_env(:ex_bdd, :messages),
+      Keyword.take(opts, [:case_template])
     )
   end
 
@@ -49,17 +62,20 @@ defmodule ExBdd.Compiler do
   # envelopes and turns on the coordinator's message recorder; the runner and the
   # after_suite flush do the rest. Shared by compile_features!/1 and
   # ExBdd.BehaviorCase.
-  @spec compile_all!([map()], ExBdd.StepRegistry.t(), [module()], String.t() | nil) ::
+  @spec compile_all!([map()], ExBdd.StepRegistry.t(), [module()], String.t() | nil, keyword()) ::
           [module()]
-  def compile_all!(features, step_registry, hook_modules, messages_path) do
+  def compile_all!(features, step_registry, hook_modules, messages_path, opts \\ []) do
     reject_module_name_collisions!(features)
 
     {compiled, next_id} =
       Enum.map_reduce(features, 0, fn feature, start_id ->
-        compilation = ExBdd.Gherkin.Pickles.compile(feature, start_id)
+        compilation = Pickles.compile(feature, start_id)
 
         module =
-          compile_feature!(feature, step_registry, hook_modules, compilation: compilation)
+          compile_feature!(feature, step_registry, hook_modules,
+            compilation: compilation,
+            case_template: Keyword.get(opts, :case_template, ExUnit.Case)
+          )
 
         {{module, feature, compilation}, compilation.next_id}
       end)
@@ -88,13 +104,18 @@ defmodule ExBdd.Compiler do
     warn_on_empty_feature(feature)
 
     compilation =
-      Keyword.get_lazy(opts, :compilation, fn -> ExBdd.Gherkin.Pickles.compile(feature) end)
+      Keyword.get_lazy(opts, :compilation, fn -> Pickles.compile(feature) end)
 
     # Generate module name from feature file path
     module_name = generate_module_name(feature.file)
 
     # Check if feature has @async tag
     async = "async" in feature.tags
+    case_template = Keyword.get(opts, :case_template, ExUnit.Case)
+
+    unless is_atom(case_template) do
+      raise ArgumentError, ":case_template must be a module, got: #{inspect(case_template)}"
+    end
 
     # Collect all hooks
     all_hooks = ExBdd.Hooks.collect_hooks(hook_modules)
@@ -121,7 +142,7 @@ defmodule ExBdd.Compiler do
     ast =
       quote do
         defmodule unquote(module_name) do
-          use ExUnit.Case, async: unquote(async)
+          use unquote(case_template), async: unquote(async)
 
           # Tag with ex_bdd and feature name
           @moduletag :ex_bdd
@@ -135,6 +156,10 @@ defmodule ExBdd.Compiler do
           )
 
           # Runtime data accessors (registry and hooks live in :persistent_term)
+          def __step_registry__ do
+            :persistent_term.get(unquote(Macro.escape(runtime_key))).step_registry
+          end
+
           @doc false
           def __ex_bdd_feature_hooks__ do
             :persistent_term.get(unquote(Macro.escape(runtime_key))).hooks
@@ -225,14 +250,27 @@ defmodule ExBdd.Compiler do
     # Convert a path like "test/features/authentication.feature" (or
     # "authentication.feature.md") to Test.Features.AuthenticationTest.
     # Path.rootname/1 only strips the final extension, so reduce the
-    # Markdown double extension to a single one first.
+    # Markdown double extension to a single one first. Absolute paths and
+    # segments with punctuation (spaces, dashes) are sanitized so
+    # out-of-tree corpora still generate valid modules.
     file_path
     |> String.replace_suffix(".feature.md", ".feature")
     |> Path.rootname()
     |> Path.split()
-    |> Enum.map_join(".", &Macro.camelize/1)
+    |> Enum.reject(&(&1 in ["/", "\\", ".", ""]))
+    |> Enum.map_join(".", &module_segment/1)
     |> Kernel.<>("Test")
     |> String.to_atom()
+  end
+
+  defp module_segment(segment) do
+    sanitized =
+      segment
+      |> String.replace(~r/[^a-zA-Z0-9]+/u, "_")
+      |> String.trim("_")
+
+    sanitized = if sanitized =~ ~r/^\d/u, do: "part_#{sanitized}", else: sanitized
+    Macro.camelize(sanitized)
   end
 
   defp feature_tag(name) do

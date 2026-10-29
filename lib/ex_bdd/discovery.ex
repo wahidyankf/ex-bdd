@@ -1,6 +1,8 @@
 defmodule ExBdd.Discovery do
   @moduledoc false
 
+  alias ExBdd.Gherkin.Parser
+
   # Discovers and loads feature files, step definitions, and hook modules.
   #
   # The discovery algorithm proceeds in this order:
@@ -23,17 +25,28 @@ defmodule ExBdd.Discovery do
   @default_support_pattern "test/features/support/**/*.exs"
 
   defmodule DiscoveryResult do
-    @moduledoc false
+    @moduledoc "Result struct returned by `ExBdd.Discovery.discover/1`."
     defstruct features: [],
               step_modules: [],
               step_registry: nil,
-              hook_modules: []
+              hook_modules: [],
+              parameter_types: %{}
+
+    @typedoc """
+    Registry keys identify the pattern kind and pattern — `{:expression, source}`
+    for expressions, `{:regex, {source, opts}}` for regular expressions.
+    Regexes are keyed by source and options rather than the `%Regex{}`
+    struct because identical regexes do not compile to structurally-equal
+    `re_pattern` binaries.
+    """
+    @type registry_key :: {:expression, String.t()} | {:regex, {String.t(), term()}}
 
     @type t :: %__MODULE__{
             features: [ExBdd.Gherkin.Feature.t()],
             step_modules: [module()],
             step_registry: ExBdd.StepRegistry.t(),
-            hook_modules: [module()]
+            hook_modules: [module()],
+            parameter_types: ExBdd.Expression.custom_types()
           }
   end
 
@@ -63,7 +76,8 @@ defmodule ExBdd.Discovery do
       features: features,
       step_modules: step_modules,
       step_registry: step_registry,
-      hook_modules: hook_modules
+      hook_modules: hook_modules,
+      parameter_types: ExBdd.StepRegistry.parameter_types(step_registry)
     }
   end
 
@@ -153,7 +167,7 @@ defmodule ExBdd.Discovery do
 
   defp parse_feature(path) do
     content = File.read!(path)
-    feature = ExBdd.Gherkin.Parser.parse(content, path)
+    feature = Parser.parse(content, path)
 
     # The raw text is kept for the `source` message (#28) — the parsed AST
     # cannot reproduce it.

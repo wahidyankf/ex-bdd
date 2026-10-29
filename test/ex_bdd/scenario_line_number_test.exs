@@ -1,8 +1,8 @@
 defmodule ExBdd.ScenarioLineNumberTest do
   use ExUnit.Case
 
-  alias ExBdd.StepError
   alias ExBdd.Gherkin.Parser
+  alias ExBdd.StepError
 
   describe "scenario line number parsing" do
     test "parser captures scenario line numbers correctly" do

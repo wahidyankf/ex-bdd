@@ -1,8 +1,8 @@
 defmodule ExBdd.RuntimeErrorTest do
   use ExUnit.Case
 
-  alias ExBdd.Runtime
   alias ExBdd.Gherkin.Step
+  alias ExBdd.Runtime
 
   defmodule FailingSteps do
     use ExBdd.StepDefinition

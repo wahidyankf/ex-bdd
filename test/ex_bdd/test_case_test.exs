@@ -1,6 +1,7 @@
 defmodule ExBdd.TestCaseTest do
   use ExUnit.Case, async: true
 
+  alias ExBdd.Gherkin.{Parser, Pickles}
   alias ExBdd.StepRegistry
   alias ExBdd.TestCase
   alias ExBdd.TestCase.HookStep
@@ -80,7 +81,8 @@ defmodule ExBdd.TestCaseTest do
   """
 
   setup do
-    [pickle] = @feature |> ExBdd.Gherkin.Parser.parse() |> Map.put(:file, "f.feature") |> pickles()
+    [pickle] =
+      @feature |> Parser.parse() |> Map.put(:file, "f.feature") |> pickles()
 
     %{
       scenario: %{pickle_id: pickle.id, pickle_steps: pickle.steps},
@@ -90,7 +92,7 @@ defmodule ExBdd.TestCaseTest do
     }
   end
 
-  defp pickles(feature), do: ExBdd.Gherkin.Pickles.compile(feature).pickles
+  defp pickles(feature), do: Pickles.compile(feature).pickles
 
   describe "new/4 hook steps" do
     test "selects scenario hooks whose tag matches, with or without the @", ctx do

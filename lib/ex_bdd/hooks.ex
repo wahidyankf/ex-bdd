@@ -256,7 +256,7 @@ defmodule ExBdd.Hooks do
       def unquote(func_name)(unquote(context_var)), do: unquote(block)
 
       @ex_bdd_hooks {unquote(hook_type), unquote(tag), unquote(name),
-                       {__MODULE__, unquote(func_name)}}
+                     {__MODULE__, unquote(func_name)}}
     end
   end
 

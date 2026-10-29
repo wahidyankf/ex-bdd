@@ -1,6 +1,7 @@
 defmodule ExBdd.MessagesTest do
   use ExUnit.Case, async: true
 
+  alias ExBdd.Gherkin.{Parser, Pickles}
   alias ExBdd.Messages
 
   defmodule DefinitionSteps do
@@ -17,9 +18,9 @@ defmodule ExBdd.MessagesTest do
 
   defp compile(source) do
     source
-    |> ExBdd.Gherkin.Parser.parse()
+    |> Parser.parse()
     |> Map.put(:file, "features/demo.feature")
-    |> ExBdd.Gherkin.Pickles.compile()
+    |> Pickles.compile()
   end
 
   describe "source/2" do

@@ -1,14 +1,14 @@
 defmodule ExBdd.Gherkin.PicklesTest do
   use ExUnit.Case, async: true
 
-  alias ExBdd.Gherkin.{Pickle, Pickles, PickleStep}
+  alias ExBdd.Gherkin.{Parser, Pickle, Pickles, PickleStep}
 
   defp compile(source, opts \\ []) do
     file = Keyword.get(opts, :file, "test/fixtures/generated/pickles_test.feature")
     start_id = Keyword.get(opts, :start_id, 0)
 
     source
-    |> ExBdd.Gherkin.Parser.parse()
+    |> Parser.parse()
     |> Map.put(:file, file)
     |> Pickles.compile(start_id)
   end

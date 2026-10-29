@@ -51,11 +51,11 @@ defmodule ExBdd.StepDefinition do
     quote do
       # Store metadata about this step
       @ex_bdd_steps {unquote(pattern),
-                       %{
-                         function: unquote(fun_name),
-                         line: unquote(__CALLER__.line),
-                         file: unquote(__CALLER__.file)
-                       }}
+                     %{
+                       function: unquote(fun_name),
+                       line: unquote(__CALLER__.line),
+                       file: unquote(__CALLER__.file)
+                     }}
 
       # Define the actual step function
       def unquote(fun_name)(unquote(context_var)) do

@@ -107,7 +107,8 @@ defmodule ExBdd.TestCase do
   end
 
   defp pickle_test_steps(steps, step_registry, first_position) do
-    Enum.map_reduce(steps, first_position, fn %ExBdd.Gherkin.PickleStep{} = pickle_step, position ->
+    Enum.map_reduce(steps, first_position, fn %ExBdd.Gherkin.PickleStep{} = pickle_step,
+                                              position ->
       step = %PickleTestStep{
         position: position,
         step: pickle_step.step,

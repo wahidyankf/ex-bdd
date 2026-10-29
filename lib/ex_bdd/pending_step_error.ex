@@ -37,7 +37,12 @@ defmodule ExBdd.PendingStepError do
   `:before_hook` when a before hook returned the pending signal. `reason`
   is the optional message from `{:pending, message}`.
   """
-  @spec new({:step, ExBdd.Gherkin.Step.t()} | :before_hook, String.t() | nil, String.t(), String.t()) ::
+  @spec new(
+          {:step, ExBdd.Gherkin.Step.t()} | :before_hook,
+          String.t() | nil,
+          String.t(),
+          String.t()
+        ) ::
           t()
   def new(source, reason, feature_file, scenario_name) do
     {step, header} =

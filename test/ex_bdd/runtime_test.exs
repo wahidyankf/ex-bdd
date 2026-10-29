@@ -1,8 +1,8 @@
 defmodule ExBdd.RuntimeTest do
   use ExUnit.Case, async: true
 
-  alias ExBdd.Runtime
   alias ExBdd.Gherkin.Step
+  alias ExBdd.Runtime
 
   # Test step module that returns various results
   defmodule TestSteps do

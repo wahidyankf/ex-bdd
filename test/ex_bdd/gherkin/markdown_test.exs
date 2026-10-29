@@ -1,15 +1,18 @@
 defmodule ExBdd.Gherkin.MarkdownTest do
   use ExUnit.Case, async: true
 
-  alias ExBdd.Gherkin.Markdown
+  alias ExBdd.Gherkin.{Markdown, Parser}
 
   describe "parse/2 dispatch" do
     test ".feature.md paths parse as Markdown, others as plain Gherkin" do
       markdown = "# Feature: MD\n\n## Scenario: s\n\n* Given a step\n"
       plain = "Feature: Plain\n\nScenario: s\n  Given a step\n"
 
-      assert %ExBdd.Gherkin.Feature{name: "MD"} = ExBdd.Gherkin.Parser.parse(markdown, "cheese.feature.md")
-      assert %ExBdd.Gherkin.Feature{name: "Plain"} = ExBdd.Gherkin.Parser.parse(plain, "cheese.feature")
+      assert %ExBdd.Gherkin.Feature{name: "MD"} =
+               Parser.parse(markdown, "cheese.feature.md")
+
+      assert %ExBdd.Gherkin.Feature{name: "Plain"} =
+               Parser.parse(plain, "cheese.feature")
     end
   end
 
@@ -91,7 +94,9 @@ defmodule ExBdd.Gherkin.MarkdownTest do
       assert [scenario, outline] = feature.scenarios
       assert %ExBdd.Gherkin.Scenario{keyword: "Example", name: "a concrete example"} = scenario
       assert %ExBdd.Gherkin.ScenarioOutline{keyword: "Scenario Template"} = outline
-      assert [%ExBdd.Gherkin.Examples{keyword: "Scenarios", table_header: ["thing"]}] = outline.examples
+
+      assert [%ExBdd.Gherkin.Examples{keyword: "Scenarios", table_header: ["thing"]}] =
+               outline.examples
     end
 
     test "headings without a Gherkin keyword are prose" do

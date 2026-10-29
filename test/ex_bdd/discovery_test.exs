@@ -528,6 +528,42 @@ defmodule ExBdd.DiscoveryTest do
       assert result.step_modules == []
       assert StepRegistry.definitions(result.step_registry) == []
       assert result.hook_modules == []
+      assert result.parameter_types == %{}
+    end
+  end
+
+  describe "discover/1 parameter types" do
+    test "exposes the registry parameter types on the result" do
+      temp_dir =
+        Path.join(System.tmp_dir(), "discover_types_test_#{System.unique_integer([:positive])}")
+
+      support_dir = Path.join(temp_dir, "support")
+      File.mkdir_p!(support_dir)
+      support_file = Path.join(support_dir, "parameter_types.exs")
+      suffix = System.unique_integer([:positive])
+
+      File.write!(support_file, """
+      defmodule DiscoveryTypes#{suffix} do
+        use ExBdd.ParameterTypes
+
+        parameter_type(:shade, regexp: ~r/red|blue/)
+      end
+      """)
+
+      try do
+        result =
+          Discovery.discover(
+            features: [],
+            steps: [],
+            support: [support_file]
+          )
+
+        assert %{name: "shade", transform: nil} = Map.fetch!(result.parameter_types, "shade")
+        assert Regex.source(Map.fetch!(result.parameter_types, "shade").regexp) == "red|blue"
+        assert result.parameter_types == StepRegistry.parameter_types(result.step_registry)
+      after
+        File.rm_rf(temp_dir)
+      end
     end
   end
 end
