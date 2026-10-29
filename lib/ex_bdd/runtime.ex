@@ -382,6 +382,33 @@ defmodule ExBdd.Runtime do
     end)
   end
 
+  @doc false
+  # Registry keys of every definition matching `step_text` — used by the
+  # verifier to check behaviour-completeness without running user code.
+  # Built on `StepRegistry.resolve/2`, so exactly the definitions `match/2`
+  # would return, but no parameter type transform runs.
+  @spec matching_definition_keys(String.t(), StepRegistry.t()) :: [
+          ExBdd.Discovery.DiscoveryResult.registry_key()
+        ]
+  def matching_definition_keys(step_text, step_registry) do
+    case StepRegistry.resolve(step_registry, step_text) do
+      :undefined -> []
+      {:ok, definition} -> [definition_key(definition)]
+      {:ambiguous, definitions} -> Enum.map(definitions, &definition_key/1)
+    end
+  end
+
+  @doc false
+  # The registry key identifying `definition`: `{:expression, source}` for
+  # expressions, `{:regex, {source, opts}}` for regexes (identical regexes
+  # do not compile to structurally-equal structs, so they key on source
+  # and options instead).
+  @spec definition_key(Definition.t()) :: ExBdd.Discovery.DiscoveryResult.registry_key()
+  def definition_key(%Definition{kind: :expression, source: source}), do: {:expression, source}
+
+  def definition_key(%Definition{kind: :regex, source: source, matcher: {:regex, regex, _, _}}),
+    do: {:regex, {source, Regex.opts(regex)}}
+
   @doc """
   Executes a step with the given context and step registry.
 

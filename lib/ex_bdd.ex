@@ -104,6 +104,19 @@ defmodule ExBdd do
   end
 
   @doc """
+  Verifies that the configured feature corpus and step bindings are complete.
+
+  Accepts the same `:features`, `:steps`, and `:support` discovery options as
+  `compile_features!/1` and returns an `ExBdd.Verification` summary.
+  """
+  @spec verify_features!(keyword()) :: ExBdd.Verification.t()
+  def verify_features!(opts \\ []) do
+    opts
+    |> ExBdd.Discovery.discover()
+    |> ExBdd.Verifier.verify!()
+  end
+
+  @doc """
   Attaches data to the current step (or hook execution) for reporting.
 
   Mirrors the `attach` API of reference ExBdd implementations: useful
