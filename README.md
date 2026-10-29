@@ -1,7 +1,7 @@
 # ExBdd for Elixir
 
-[![Hex.pm](https://img.shields.io/hexpm/v/cucumber.svg)](https://hex.pm/packages/ex_bdd)
-[![Docs](https://img.shields.io/hexpm/v/cucumber.svg?color=blue&label=hexdocs)](https://hexdocs.pm/ex_bdd)
+[![Hex.pm](https://img.shields.io/hexpm/v/ex_bdd.svg)](https://hex.pm/packages/ex_bdd)
+[![Docs](https://img.shields.io/hexpm/v/ex_bdd.svg?color=blue&label=hexdocs)](https://hexdocs.pm/ex_bdd)
 
 A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in natural language. ExBdd for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
 
@@ -36,7 +36,7 @@ Add `ex_bdd` to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:ex_bdd, "~> 1.0", only: [:dev, :test]}
+    {:ex_bdd, "~> 0.1", only: [:dev, :test]}
   ]
 end
 ```
@@ -124,6 +124,14 @@ mix test --only ex_bdd
 
 # Run specific feature
 mix test --only feature_basic_calculator
+
+# Fast check while developing: compile with warnings as errors,
+# verify formatting, run strict Credo, then the test suite
+mix test:quick
+
+# Full cleanup before committing: format, strict Credo, drop unused
+# lockfile entries, then the test suite
+mix precommit
 ```
 
 ## File Structure

@@ -221,7 +221,7 @@ defmodule ExBdd.Expression do
         }
 
   @doc """
-  Compiles a ExBdd Expression pattern into a matchable AST.
+  Compiles a Cucumber Expression pattern into a matchable AST.
 
   This function transforms a human-readable pattern with typed parameters
   into an AST that can be used for matching step text. Custom parameter

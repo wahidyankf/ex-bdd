@@ -39,7 +39,7 @@ defmodule ExBdd.Messages do
 
       {lines, _next_id} =
         Enum.flat_map_reduce(features, 0, fn feature, start_id ->
-          compilation = ExBdd.Gherkin.Pickles.compile(feature, start_id)
+          compilation = Pickles.compile(feature, start_id)
 
           envelopes = [
             ExBdd.Messages.source(feature.file, feature.source),
@@ -64,6 +64,8 @@ defmodule ExBdd.Messages do
   further per-sample divergences.
   """
 
+  alias ExBdd.Gherkin.{Markdown, Pickles}
+
   @gherkin_media_type "text/x.cucumber.gherkin+plain"
   @markdown_media_type "text/x.cucumber.gherkin+markdown"
 
@@ -85,7 +87,7 @@ defmodule ExBdd.Messages do
   end
 
   defp media_type(uri) do
-    if ExBdd.Gherkin.Markdown.markdown_path?(uri) do
+    if Markdown.markdown_path?(uri) do
       @markdown_media_type
     else
       @gherkin_media_type
@@ -96,7 +98,7 @@ defmodule ExBdd.Messages do
   Builds a `gherkinDocument` envelope from a compiled feature node.
 
   `feature_node` and `comments` are the `document` and `comments`
-  produced by `ExBdd.Gherkin.Pickles.compile/2`.
+  produced by `Pickles.compile/2`.
   """
   @spec gherkin_document(String.t(), map(), [map()]) :: envelope()
   def gherkin_document(uri, feature_node, comments \\ []) do
@@ -114,7 +116,7 @@ defmodule ExBdd.Messages do
         uri: pickle.uri,
         name: pickle.name,
         language: pickle.language,
-        location: ExBdd.Gherkin.Pickles.location(pickle.line),
+        location: Pickles.location(pickle.line),
         astNodeIds: pickle.ast_node_ids,
         tags: Enum.map(pickle.tags, &%{name: &1.name, astNodeId: &1.ast_node_id}),
         steps: Enum.map(pickle.steps, &pickle_step/1)
@@ -187,7 +189,7 @@ defmodule ExBdd.Messages do
 
       ExBdd.Messages.step_definition("9", {:expression, "I have {int} cukes"}, %{})
   """
-  @deprecated "Use step_definition/2 with a ExBdd.StepRegistry.Definition; removed in 2.0"
+  @deprecated "Use step_definition/2 with an ExBdd.StepRegistry.Definition; removed in 2.0"
   @spec step_definition(
           String.t(),
           {:expression, String.t()} | {:regex, {String.t(), term()}},

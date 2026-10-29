@@ -1,6 +1,6 @@
 # ExBdd for Elixir
 
-A ExBdd implementation that turns Gherkin feature files into ExUnit tests, matching each step's text against user-written step definitions.
+An ExBdd implementation that turns Gherkin feature files into ExUnit tests, matching each step's text against user-written step definitions.
 
 ## Language
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a ExBdd implementation for Elixir, providing a behavior-driven development (BDD) testing framework that uses Gherkin syntax to write executable specifications in natural language. It bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
+This is an ExBdd implementation for Elixir, providing a behavior-driven development (BDD) testing framework that uses Gherkin syntax to write executable specifications in natural language. It bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
 
 ## Key Features
 
@@ -30,8 +30,12 @@ mix compile
 # Run all tests
 mix test
 
+# Fast check: compile with warnings as errors, verify formatting,
+# run strict Credo, then the test suite
+mix test:quick
+
 # Run a specific test file
-mix test test/ex_bdd_test.exs
+mix test test/ex_bdd/compiler_test.exs
 
 # Run a specific test that matches a pattern
 mix test --only name_of_test

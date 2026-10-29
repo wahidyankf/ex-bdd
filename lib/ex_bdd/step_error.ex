@@ -1,6 +1,6 @@
 defmodule ExBdd.StepError do
   @moduledoc """
-  Exception raised when a step in a ExBdd scenario fails.
+  Exception raised when a step in an ExBdd scenario fails.
 
   This module provides detailed error reporting for two main failure cases:
 
@@ -136,7 +136,8 @@ defmodule ExBdd.StepError do
         [passed] When I press add
         [failed] Then the result should be 10
   """
-  @spec failed_step(ExBdd.Gherkin.Step.t(), String.t(), term(), String.t(), String.t(), list()) :: t()
+  @spec failed_step(ExBdd.Gherkin.Step.t(), String.t(), term(), String.t(), String.t(), list()) ::
+          t()
   def failed_step(step, pattern, failure_reason, feature_file, scenario_name, step_history \\ []) do
     # Get scenario line from step history context if available
     scenario_line = extract_scenario_line(step_history)

@@ -18,7 +18,7 @@ Add `ex_bdd` to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:ex_bdd, "~> 1.0", only: [:dev, :test]}
+    {:ex_bdd, "~> 0.1", only: [:dev, :test]}
   ]
 end
 ```

@@ -71,7 +71,7 @@ Feature File (Text) → NimbleParsec Parser → Elixir Structs
 
 The Expression engine uses NimbleParsec to parse and match step text against step definitions. It supports:
 
-- ExBdd expressions with parameter types (`{string}`, `{int}`, `{float}`, `{word}`, `{atom}`)
+- Cucumber expressions with parameter types (`{string}`, `{int}`, `{float}`, `{word}`, `{atom}`)
 - Custom parameter types defined with `ExBdd.ParameterTypes` (regexp + transform)
 - Optional parameters (`{int?}`)
 - Optional text (`(s)` for pluralization)

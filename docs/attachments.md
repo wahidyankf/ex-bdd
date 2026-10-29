@@ -7,7 +7,7 @@ invisible; a failing step's error output lists everything the scenario
 attached. When Cucumber Messages output is enabled (`config :ex_bdd,
 messages: "path.ndjson"`), attachments are also emitted as `attachment`
 envelopes in the message stream, attributed to their step or hook, where
-standard ExBdd report tooling can render them.
+standard Cucumber report tooling can render them.
 
 ## Attaching data
 

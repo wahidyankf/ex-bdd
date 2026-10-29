@@ -5,7 +5,7 @@ ExBdd for Elixir runs 43 of 49 samples from the Cucumber Compatibility Kit
 files, reference streams, and the attachment PDF match that revision byte for
 byte. These approvals establish compatibility for the covered behavior subject
 to the allowances below; they do not establish complete ExBdd, Gherkin,
-ExBdd Expressions, or formatter compatibility.
+Cucumber Expressions, or formatter compatibility.
 
 ## Messages contract
 
@@ -54,7 +54,7 @@ Messages model, or compatibility with every consumer.
 | Excluded: discovery raises `ExBdd.UndefinedParameterTypeError` before a run, rather than emitting `undefinedParameterType` | `unknown-parameter-type` |
 
 An inventory test requires every sample in the pinned upstream tree to be either
-approved or explicitly excluded. Broader Gherkin parser/dialect and ExBdd
+approved or explicitly excluded. Broader Gherkin parser/dialect and Cucumber
 Expressions fixture adoption remains follow-up work, with separate fixture pins
 and explicit support matrices needed for each.
 
