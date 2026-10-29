@@ -1,5 +1,5 @@
 defmodule ParameterSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Step with {int} parameter

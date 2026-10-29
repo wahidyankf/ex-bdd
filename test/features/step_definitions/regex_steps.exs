@@ -1,5 +1,5 @@
 defmodule RegexFeatureSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step ~r/^a basket holding (\d+) apples(?: and (\d+) pears)?$/, %{args: [apples, pears]} do

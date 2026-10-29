@@ -1,5 +1,5 @@
 defmodule MarkdownSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "a Markdown feature file", _context do

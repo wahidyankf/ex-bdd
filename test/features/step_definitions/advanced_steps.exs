@@ -1,5 +1,5 @@
 defmodule AdvancedSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Test step with data table in background

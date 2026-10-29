@@ -1,5 +1,5 @@
 defmodule ReturnValuesSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Initialize context with a marker

@@ -1,10 +1,10 @@
-# Getting Started with Cucumber for Elixir
+# Getting Started with ExBdd for Elixir
 
-Cucumber for Elixir allows you to write executable specifications using natural language that bridges the gap between technical and non-technical stakeholders.
+ExBdd for Elixir allows you to write executable specifications using natural language that bridges the gap between technical and non-technical stakeholders.
 
 ## Overview
 
-The Cucumber framework allows you to write tests in a natural language format using Gherkin syntax. This approach enables:
+The ExBdd framework allows you to write tests in a natural language format using Gherkin syntax. This approach enables:
 
 - Behavior-driven development (BDD)
 - Clear documentation of application behavior
@@ -13,12 +13,12 @@ The Cucumber framework allows you to write tests in a natural language format us
 
 ## Installation
 
-Add `cucumber` to your `mix.exs` dependencies:
+Add `ex_bdd` to your `mix.exs` dependencies:
 
 ```elixir
 def deps do
   [
-    {:cucumber, "~> 1.0", only: [:dev, :test]}
+    {:ex_bdd, "~> 0.1", only: [:dev, :test]}
   ]
 end
 ```
@@ -27,11 +27,11 @@ end
 
 ### 1. Configure Test Helper
 
-Add Cucumber to your `test/test_helper.exs`:
+Add ExBdd to your `test/test_helper.exs`:
 
 ```elixir
 ExUnit.start()
-Cucumber.compile_features!()
+ExBdd.compile_features!()
 ```
 
 To suppress ExUnit warnings about step definition and support files not matching the `*_test.exs` pattern, add this to your `mix.exs`:
@@ -75,7 +75,7 @@ Create step definitions in `test/features/step_definitions/` with a `.exs` exten
 ```elixir
 # test/features/step_definitions/authentication_steps.exs
 defmodule AuthenticationSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Step definitions
@@ -123,11 +123,11 @@ end
 Run your tests using the standard mix test command:
 
 ```bash
-# Run all tests including Cucumber
+# Run all tests including ExBdd
 mix test
 
-# Run only Cucumber tests
-mix test --only cucumber
+# Run only ExBdd tests
+mix test --only ex_bdd
 
 # Run tests for a specific feature
 mix test --only feature_user_authentication
@@ -135,7 +135,7 @@ mix test --only feature_user_authentication
 
 ## File Structure
 
-Cucumber automatically discovers features and steps using this structure:
+ExBdd automatically discovers features and steps using this structure:
 
 ```
 test/
@@ -175,7 +175,7 @@ When using Ecto, async tests work well with the SQL sandbox in shared mode. See 
 
 ## Next Steps
 
-For more detailed information about the Cucumber for Elixir framework, check out these guides:
+For more detailed information about the ExBdd for Elixir framework, check out these guides:
 
 - [Feature Files](./feature_files.md) - Learn how to write feature files with Gherkin syntax
 - [Step Definitions](./step_definitions.md) - Learn how to implement step definitions

@@ -1,5 +1,5 @@
 defmodule TaggedSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
 
   # Smoke test steps
   step "a simple smoke test", context do

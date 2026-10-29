@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Cucumber implementation for Elixir, providing a behavior-driven development (BDD) testing framework that uses Gherkin syntax to write executable specifications in natural language. It bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
+This is an ExBdd implementation for Elixir, providing a behavior-driven development (BDD) testing framework that uses Gherkin syntax to write executable specifications in natural language. It bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
 
 ## Key Features
 
@@ -30,8 +30,12 @@ mix compile
 # Run all tests
 mix test
 
+# Fast check: compile with warnings as errors, verify formatting,
+# run strict Credo, then the test suite
+mix test:quick
+
 # Run a specific test file
-mix test test/cucumber_test.exs
+mix test test/ex_bdd/compiler_test.exs
 
 # Run a specific test that matches a pattern
 mix test --only name_of_test
@@ -68,12 +72,12 @@ git push origin v0.1.0
 
 ## Architecture
 
-This Cucumber implementation consists of several key components:
+This ExBdd implementation consists of several key components:
 
-1. **Discovery System** (`lib/cucumber/discovery.ex`) - Auto-discovers features and steps
+1. **Discovery System** (`lib/ex_bdd/discovery.ex`) - Auto-discovers features and steps
    - Scans for feature files based on patterns
    - Loads step definition and support modules
-   - Builds the step registry (`lib/cucumber/step_registry.ex`): the one place
+   - Builds the step registry (`lib/ex_bdd/step_registry.ex`): the one place
      step text is matched against step definitions (see `GLOSSARY.md`)
 
 2. **Gherkin Parser** (`lib/gherkin.ex`) - Parses Gherkin syntax from `.feature` files
@@ -84,28 +88,28 @@ This Cucumber implementation consists of several key components:
    - `lib/gherkin/markdown.ex` parses Markdown with Gherkin (`.feature.md`)
      into the same structs
 
-3. **Compiler** (`lib/cucumber/compiler.ex`) - Generates ExUnit test modules
+3. **Compiler** (`lib/ex_bdd/compiler.ex`) - Generates ExUnit test modules
    - Creates one test module per feature file
    - Expands features into pickles (`lib/gherkin/pickles.ex`) and creates one test per pickle
    - Adds appropriate tags for filtering
 
-4. **Runtime** (`lib/cucumber/runtime.ex`) - Runs the scenario lifecycle inside the test body
+4. **Runtime** (`lib/ex_bdd/runtime.ex`) - Runs the scenario lifecycle inside the test body
    - Hooks, background steps, and scenario steps all run in the test process
-   - Builds each scenario's test case once (`lib/cucumber/test_case.ex`):
+   - Builds each scenario's test case once (`lib/ex_bdd/test_case.ex`):
      hooks selected by tag, steps resolved to their definitions via
-     `Cucumber.StepRegistry.resolve/2`; retries and the Messages emitter reuse
+     `ExBdd.StepRegistry.resolve/2`; retries and the Messages emitter reuse
      it (see `GLOSSARY.md`). Args are converted per attempt, when each step runs
      (`StepRegistry.args/2`), since parameter type transforms are user code
    - Manages context between steps
    - Handles datatables and docstrings
    - Processes step return values (incl. pending/skipped, retry)
 
-5. **Step Definition** (`lib/cucumber/step_definition.ex`) - DSL for defining steps
+5. **Step Definition** (`lib/ex_bdd/step_definition.ex`) - DSL for defining steps
    - `step` macro for defining step implementations
    - Automatic parameter extraction
    - Context management
 
-6. **Error Handling** (`lib/cucumber/step_error.ex`) - Provides useful error messages
+6. **Error Handling** (`lib/ex_bdd/step_error.ex`) - Provides useful error messages
    - Detailed error reports when steps fail
    - Suggestions for missing step definitions
 
@@ -137,7 +141,7 @@ Example:
 ```elixir
 # test/features/step_definitions/authentication_steps.exs
 defmodule AuthenticationSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I am on the sign in page", context do
@@ -165,7 +169,7 @@ Step definitions must return one of the following values (matching ExUnit's setu
 3. A keyword list - Merged into the existing context
 4. `{:ok, map_or_keyword_list}` - Merged into the existing context
 5. `{:error, reason}` - Fails the step with the given reason
-6. `:pending` / `{:pending, message}` - Skips remaining steps, fails the scenario with `Cucumber.PendingStepError`
+6. `:pending` / `{:pending, message}` - Skips remaining steps, fails the scenario with `ExBdd.PendingStepError`
 7. `:skipped` / `{:skipped, reason}` - Skips remaining steps without failing the scenario
 
 ## Advanced Features

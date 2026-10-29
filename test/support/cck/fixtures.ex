@@ -1,4 +1,4 @@
-defmodule Cucumber.CckFixtures do
+defmodule ExBdd.CckFixtures do
   @moduledoc "Offline provenance checks and the online CCK revision comparison."
   import ExUnit.Assertions
 

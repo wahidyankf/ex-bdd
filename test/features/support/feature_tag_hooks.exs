@@ -1,5 +1,5 @@
 defmodule FeatureTagHooks do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   # Feature-level hook - should run in setup before background
   before_scenario "@database", context do

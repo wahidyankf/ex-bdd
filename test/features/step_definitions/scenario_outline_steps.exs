@@ -1,5 +1,5 @@
 defmodule ScenarioOutlineSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I have number {int}", %{args: [number]} = context do

@@ -1,5 +1,5 @@
 defmodule DatabaseExampleSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "a step that checks database setup", context do

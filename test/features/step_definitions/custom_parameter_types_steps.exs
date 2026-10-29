@@ -1,5 +1,5 @@
 defmodule CustomParameterTypesSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "flight {iata_route} is boarding", %{args: [route]} do

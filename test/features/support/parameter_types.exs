@@ -1,5 +1,5 @@
 defmodule FeatureParameterTypes do
-  use Cucumber.ParameterTypes
+  use ExBdd.ParameterTypes
 
   parameter_type(:iata_route,
     regexp: ~r/([A-Z]{3})-([A-Z]{3})/,

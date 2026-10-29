@@ -1,5 +1,5 @@
 defmodule SharedStepsIntegrationSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Test-specific steps

@@ -1,10 +1,10 @@
 # Error Handling and Debugging
 
-Cucumber for Elixir provides detailed error reporting to help debug test failures. This document explains how to handle and understand errors in your Cucumber tests.
+ExBdd for Elixir provides detailed error reporting to help debug test failures. This document explains how to handle and understand errors in your ExBdd tests.
 
 ## Enhanced Error Messages
 
-The latest version of Cucumber for Elixir provides significantly enhanced error messages with:
+The latest version of ExBdd for Elixir provides significantly enhanced error messages with:
 
 - **Clickable file:line references** - Error messages include clickable links to the exact location in your feature files
 - **Contextual information** - Feature file path, scenario name, and line numbers
@@ -18,7 +18,7 @@ The latest version of Cucumber for Elixir provides significantly enhanced error 
 When a step in your feature file has no matching definition, the framework will provide a helpful error message with a clickable file reference:
 
 ```
-** (Cucumber.StepError) No matching step definition found for step:
+** (ExBdd.StepError) No matching step definition found for step:
 
   When I try to use a step with no definition
 
@@ -39,7 +39,7 @@ The file:line format (e.g., `test/features/example.feature:6`) is clickable in m
 When a step fails during execution (due to a failed assertion or an exception), you'll get an enhanced error message:
 
 ```
-** (Cucumber.StepError) Step failed:
+** (ExBdd.StepError) Step failed:
 
   Then the validation should succeed
 
@@ -70,7 +70,7 @@ The enhanced error message includes:
 When using ExUnit assertions that fail, the error messages are now extracted and formatted for better readability:
 
 ```
-** (Cucumber.StepError) Step failed:
+** (ExBdd.StepError) Step failed:
 
   Then I should see "Welcome" in the header
 
@@ -93,7 +93,7 @@ Step execution history:
 When working with PhoenixTest and HTML elements, error messages now display HTML with proper indentation:
 
 ```
-** (Cucumber.StepError) Step failed:
+** (ExBdd.StepError) Step failed:
 
   When I click the "Submit" button
 
@@ -121,7 +121,7 @@ Step execution history:
 If there are syntax errors in your feature files, you'll get an error when the parser tries to process the file:
 
 ```
-** (Gherkin.ParseError) Gherkin parse error at test/features/checkout.feature:6:7:
+** (ExBdd.Gherkin.ParseError) Gherkin parse error at test/features/checkout.feature:6:7:
   Expected a table row with 3 cells to match the first row, got 2
 Near: "| Smartphone   | 1        |..."
 ```
@@ -233,12 +233,12 @@ end
 ### Scenario-Level Retry
 
 Failing scenarios can be retried automatically, matching the retry
-mechanism of other Cucumber implementations. Configure a global retry
+mechanism of other ExBdd implementations. Configure a global retry
 limit:
 
 ```elixir
 # config/test.exs
-config :cucumber, retry: 2  # up to 3 attempts per failing scenario
+config :ex_bdd, retry: 2  # up to 3 attempts per failing scenario
 ```
 
 Or opt individual scenarios (or whole features) in with a `@retry-n` tag,

@@ -1,8 +1,8 @@
 defmodule AuthenticationSteps do
   @moduledoc """
-  Authentication steps for cucumber tests.
+  Authentication steps for ex_bdd tests.
   """
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I am logged in as {string}", %{args: [username]} do

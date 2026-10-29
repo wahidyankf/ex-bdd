@@ -1,24 +1,66 @@
 # Changelog
 
-## Unreleased
+## v0.1.0 (2026-10-29)
+
+This fork is independent of upstream [huddlz-hq/cucumber](https://github.com/huddlz-hq/cucumber)
+and does not maintain upstream compatibility. It renames the 1.1.1 codebase
+(including the then-unreleased message-recorder change below) to `ex_bdd`
+and adds the `ExBdd` API surface.
 
 ### Changed
 
-- The Cucumber Messages stream is built by a pure message recorder that `Cucumber.RunCoordinator` holds. The stream is unchanged. The undocumented (`@doc false`) `Cucumber.RunCoordinator.record_message/1` replaces `message_context/0`, `take_message_ids/1`, `emit_runtime/1`, `finish_test_case/3` and `skip_unfinished_steps/3`.
+- Renamed the OTP application from `:cucumber` to `:ex_bdd` and every
+  `Cucumber*` module to `ExBdd*`; `Gherkin.*` is now `ExBdd.Gherkin.*`.
+  The Hex package is `ex_bdd`, config moves from `config :cucumber` to
+  `config :ex_bdd`, and the ExUnit tag is `:ex_bdd`. Cucumber Messages
+  protocol names and values (`CUCUMBER_EXPRESSION`, the
+  `text/x.cucumber.gherkin` media types, the Cucumber Compatibility Kit
+  fixtures) are unchanged, as are `cucumber`/`cucumbers` example-domain
+  words in feature and step text. The Messages `meta` implementation name
+  is now `ex-bdd`.
+- `ExBdd.Compiler.compile_feature!/1` accepts a `:case_template` option
+  (default `ExUnit.Case`) so callers can compile features into their own
+  ExUnit case template; generated modules also expose
+  `__step_registry__/0`, and feature files at absolute paths (or with
+  punctuation in their segments) generate valid module names.
+- `ExBdd.Discovery.DiscoveryResult` carries the registry's
+  `parameter_types`, and `ExBdd.Compiler.compile_discovery!/1` compiles an
+  already-discovered result (with `:case_template` support), so callers can
+  transform the discovery between `discover/1` and compilation.
+- Kept standalone 1.1.1 behavior where it conflicts with the ported
+  behavior: step matching stays in the pre-compiled `ExBdd.StepRegistry`
+  (built once, transforms run only when the step does), scenarios still run
+  through the shared `ExBdd.TestCase` with retry and attachments, the
+  Messages stream is still built by the pure message recorder, and
+  `compile_features!/1` still compiles corpora that strict verification
+  would reject (undefined steps fail at runtime).
+- The Cucumber Messages stream is built by a pure message recorder that `ExBdd.RunCoordinator` holds. The stream is unchanged. The undocumented (`@doc false`) `ExBdd.RunCoordinator.record_message/1` replaces `message_context/0`, `take_message_ids/1`, `emit_runtime/1`, `finish_test_case/3` and `skip_unfinished_steps/3`.
+
+### Added
+
+- Strict behaviour-completeness verification: `ExBdd.Verifier.verify!/1`
+  checks a discovery result — no empty corpus, every feature has
+  executable scenarios, every scenario has an explicit `When` and `Then`,
+  every step matches exactly one binding, every binding is used — and
+  returns an `ExBdd.Verification` summary or raises
+  `ExBdd.VerificationError`. `ExBdd.verify_features!/1` discovers with the
+  usual `:features`/`:steps`/`:support` options and verifies.
+- `mix test:quick` runs compile with warnings as errors, a format check,
+  strict Credo, and the test suite.
 
 ## v1.1.1 (2026-10-25)
 
 ### Fixed
 
 - With Cucumber Messages enabled, a custom parameter type's `transform` no longer runs an extra time for every step when the scenario starts, before its hooks and for steps that never run. A transform now runs only when its step does, once per attempt, and one that raises fails that step (reported as a failed test step) rather than the scenario before anything ran.
-- A step that matches more than one definition always fails with `Cucumber.AmbiguousStepError`. Matching it used to run the parameter type transforms of every definition it matched, so a transform that raised surfaced as that error instead of the ambiguity. Its transforms no longer run.
+- A step that matches more than one definition always fails with `ExBdd.AmbiguousStepError`. Matching it used to run the parameter type transforms of every definition it matched, so a transform that raised surfaced as that error instead of the ambiguity. Its transforms no longer run.
 
 ### Changed
 
 - Undocumented (`@doc false`) hook and Cucumber Messages functions changed shape:
-  - `Cucumber.Hooks.run_before_hooks/3` and `run_after_hooks/3` take the scenario's hooks already selected by tag, instead of every hook plus the scenario's tags (`run_before_hooks/4`, `run_after_hooks/4`). Their around-callback now receives the hook's test step and the function that runs it, `(hook_step, fun)`, instead of `(index, name, fun)`, and the `Cucumber.Hooks.around` type is no longer documented.
-  - `Cucumber.Hooks.before_scenario_hooks/2` and `after_scenario_hooks/2` are removed.
-  - `Cucumber.Messages.Emitter.open_test_case/1` takes the scenario's test case instead of `open_test_case/2`; `hook_around/1` no longer takes a hook kind (was `hook_around/2`); `step_message/2` takes a test step instead of a test step id; and `step_id/2` is removed.
+  - `ExBdd.Hooks.run_before_hooks/3` and `run_after_hooks/3` take the scenario's hooks already selected by tag, instead of every hook plus the scenario's tags (`run_before_hooks/4`, `run_after_hooks/4`). Their around-callback now receives the hook's test step and the function that runs it, `(hook_step, fun)`, instead of `(index, name, fun)`, and the `ExBdd.Hooks.around` type is no longer documented.
+  - `ExBdd.Hooks.before_scenario_hooks/2` and `after_scenario_hooks/2` are removed.
+  - `ExBdd.Messages.Emitter.open_test_case/1` takes the scenario's test case instead of `open_test_case/2`; `hook_around/1` no longer takes a hook kind (was `hook_around/2`); `step_message/2` takes a test step instead of a test step id; and `step_id/2` is removed.
 
 ## v1.1.0 (2026-10-14)
 
@@ -27,60 +69,60 @@
 These follow the reference Gherkin parser or fix silent misbehavior, but can change what an existing suite sees:
 
 - Empty data table and Examples cells now keep their column as `""`, in both `.feature` and `.feature.md` files (#54). Previously they were dropped, which shifted later cells left; a row like `| Doritos |  | 9 oz |` now parses as `["Doritos", "", "9 oz"]` instead of `["Doritos", "9 oz"]`, so step code that matched on row length may need updating.
-- A table row whose cell count differs from its table's first row now raises `Gherkin.ParseError` at that row, as the reference Gherkin parser does. Previously the row's values were silently lost or misplaced when zipped against the header.
+- A table row whose cell count differs from its table's first row now raises `ExBdd.Gherkin.ParseError` at that row, as the reference Gherkin parser does. Previously the row's values were silently lost or misplaced when zipped against the header.
 - Text after the last `|` of an unterminated table row (`| a | b`) is no longer read as a cell, matching the reference parser.
 - Table cells support the reference Gherkin escapes in both `.feature` and `.feature.md` files: `\|` is a literal pipe, `\\` a backslash and `\n` a newline. Previously `\|` split the cell in two, so a row containing one now has the cell count its header expects instead of failing the row-width check. Any other backslash is kept as written.
 - `.feature` parse errors read naturally and point at the right place. A line the parser cannot read now says `Expected a step, table row, doc string, tag, comment or keyword line` instead of `Expected Unexpected content; parser stopped before end of file`, and a file with no feature says `Expected feature` instead of `Expected expected feature`. The column is now 1-based at the start of the line's content rather than a byte offset, and `Near:` quotes only that line.
-- `Cucumber.Discovery`, `Cucumber.Runtime`, and `Cucumber.Compiler` are now internal (`@moduledoc false`); see `docs/adr/0001-pipeline-modules-are-internal.md`. Code that read `DiscoveryResult.step_registry` as a map of `{:expression, source}` / `{:regex, {source, opts}}` keys must use `Cucumber.StepRegistry` instead, and `DiscoveryResult.parameter_types` is gone (use `StepRegistry.parameter_types/1`).
-- `Cucumber.AmbiguousStepError` lists matching definitions in definition order (file, then line) rather than alphabetically by pattern.
+- `ExBdd.Discovery`, `ExBdd.Runtime`, and `ExBdd.Compiler` are now internal (`@moduledoc false`); see `docs/adr/0001-pipeline-modules-are-internal.md`. Code that read `DiscoveryResult.step_registry` as a map of `{:expression, source}` / `{:regex, {source, opts}}` keys must use `ExBdd.StepRegistry` instead, and `DiscoveryResult.parameter_types` is gone (use `StepRegistry.parameter_types/1`).
+- `ExBdd.AmbiguousStepError` lists matching definitions in definition order (file, then line) rather than alphabetically by pattern.
 
 ### Added
 
-- **Step matching moved into `Cucumber.StepRegistry`.** The registry is built once from step definition and parameter type modules (`StepRegistry.new/2`) and answers `StepRegistry.match/2` with `{:ok, definition, args}`, `:undefined`, or `{:ambiguous, matches}`. Every pattern now compiles once when the registry is built instead of on each match.
-- `Gherkin.ParseError` names the feature file it came from. Errors raised while discovering or compiling features (anything parsed with `Gherkin.Parser.parse/2`) set the new `file` field and lead with `path:line:column`, e.g. `Gherkin parse error at test/features/checkout.feature:6:7:`, for `.feature` and `.feature.md` files alike. `Gherkin.Parser.parse/1` has no path and keeps the `line N, column N` form.
+- **Step matching moved into `ExBdd.StepRegistry`.** The registry is built once from step definition and parameter type modules (`StepRegistry.new/2`) and answers `StepRegistry.match/2` with `{:ok, definition, args}`, `:undefined`, or `{:ambiguous, matches}`. Every pattern now compiles once when the registry is built instead of on each match.
+- `ExBdd.Gherkin.ParseError` names the feature file it came from. Errors raised while discovering or compiling features (anything parsed with `ExBdd.Gherkin.Parser.parse/2`) set the new `file` field and lead with `path:line:column`, e.g. `Gherkin parse error at test/features/checkout.feature:6:7:`, for `.feature` and `.feature.md` files alike. `ExBdd.Gherkin.Parser.parse/1` has no path and keeps the `line N, column N` form.
 
 ### Changed
 
 - Upgrade the emitted Messages protocol to 34.2.1 and the pinned Cucumber Compatibility Kit to 31.0.0, with 43 of 49 samples approved. The new `data-tables-doc-strings` sample is excluded: a step carrying both a data table and a doc string is not yet supported.
-- `Cucumber.Expression.compile/2` no longer caches compiled expressions in `:persistent_term`.
+- `ExBdd.Expression.compile/2` no longer caches compiled expressions in `:persistent_term`.
 - Refresh Mix dependencies and the Elixir/Erlang and GitHub Actions toolchains.
 
 ### Deprecated
 
 These keep working in 1.x and will be removed in 2.0:
 
-- `Cucumber.Messages.step_definition/3` (registry key + source reference). Use `step_definition/2`, which takes a `Cucumber.StepRegistry.Definition`.
-- `Cucumber.Messages.Emitter.configure/6`. Its `parameter_types` argument is now ignored, because the step registry carries the parameter types. Enable messages with `config :cucumber, messages: path`. `Cucumber.Messages.Emitter` will become internal in 2.0.
+- `ExBdd.Messages.step_definition/3` (registry key + source reference). Use `step_definition/2`, which takes a `ExBdd.StepRegistry.Definition`.
+- `ExBdd.Messages.Emitter.configure/6`. Its `parameter_types` argument is now ignored, because the step registry carries the parameter types. Enable messages with `config :ex_bdd, messages: path`. `ExBdd.Messages.Emitter` will become internal in 2.0.
 
 ### Bug Fixes
 
 - Regex step definitions with flags (e.g. `~r/.../i`) no longer crash when a step matches them on Elixir versions where `Regex.opts/1` returns a list.
-- Attaching from a `before_all` hook (`Cucumber.attach/4`, `Cucumber.log/2`, `Cucumber.link/2`) no longer deadlocks the run coordinator and fails every scenario (#57). `before_all` hooks now run in the calling test process; the coordinator still guarantees they run exactly once per run, and concurrent `@async` features wait for the first caller's result. The attachment is recorded with no phase.
+- Attaching from a `before_all` hook (`ExBdd.attach/4`, `ExBdd.log/2`, `ExBdd.link/2`) no longer deadlocks the run coordinator and fails every scenario (#57). `before_all` hooks now run in the calling test process; the coordinator still guarantees they run exactly once per run, and concurrent `@async` features wait for the first caller's result. The attachment is recorded with no phase.
 - A `.feature` file that starts with blank lines now reports its true line numbers everywhere they surface — error `file:line` links, the `scenario_line` tag, failure stack frames, and Cucumber Messages locations. Previously the parser stripped leading newlines before parsing, shifting every line up by the number of leading blank lines and disagreeing with the `.feature.md` parser (#58).
 - Attachments from `before_all` and `after_all` hooks now appear in the Cucumber Messages stream as `attachment` envelopes carrying the hook's `testRunHookStartedId`, between its `testRunHookStarted` and `testRunHookFinished` envelopes (#59). Previously they were emitted with no reference at all. The CCK `global-hooks-attachments` sample is now approved.
 
 ## v1.0.0 (2026-07-02)
 
-This release completes the Cucumber Compatibility Kit roadmap (#17–#29) and marks 1.0. Cucumber for Elixir is now CCK compliant: the official [CCK](https://github.com/cucumber/compatibility-kit) runs as an approval suite in this repo, comparing the Cucumber Messages we emit against the reference implementation's output. Full documentation for every feature below lives in the [guides](https://hexdocs.pm/cucumber).
+This release completes the Cucumber Compatibility Kit roadmap (#17–#29) and marks 1.0. ExBdd for Elixir is now CCK compliant: the official [CCK](https://github.com/cucumber/compatibility-kit) runs as an approval suite in this repo, comparing the Cucumber Messages we emit against the reference implementation's output. Full documentation for every feature below lives in the [guides](https://hexdocs.pm/ex_bdd).
 
 ### Breaking and behavior changes
 
 - **The scenario lifecycle now runs entirely inside the test body.** Before hooks, background steps, scenario steps, and after hooks all run in the test process — no longer split across ExUnit `setup` and `on_exit`. A failing background step is reported as a normal in-test failure (previously a setup failure), and after hooks run on pass and fail alike.
 - **A scenario with no steps of its own no longer runs the background** (matches the reference compiler; previously background steps ran anyway).
-- The compiler now generates one ExUnit test per pickle. `Cucumber.Compiler.expand_feature/1` and `expand_all_scenarios/1` are removed — use `Gherkin.Pickles.compile/2` — and the dormant `Gherkin.Scenario.rule` field is gone.
-- The generated per-module `step/2` dispatcher is removed; dispatch happens once, in `Cucumber.Runtime`, via the step registry. Registry keys are now `{:expression, source}` / `{:regex, {source, opts}}` tuples (**breaking** for code reading `DiscoveryResult.step_registry` directly).
-- Hook internals changed shape: hook tuples are now `{type, tag, name, {module, function}}`, `Cucumber.Hooks.run_before_hooks`/`run_after_hooks` take an optional around-callback and return `{:error, reason, hook_name}` on failure, and `Cucumber.RunCoordinator.record_attachment/2` takes a message reference.
+- The compiler now generates one ExUnit test per pickle. `ExBdd.Compiler.expand_feature/1` and `expand_all_scenarios/1` are removed — use `ExBdd.Gherkin.Pickles.compile/2` — and the dormant `ExBdd.Gherkin.Scenario.rule` field is gone.
+- The generated per-module `step/2` dispatcher is removed; dispatch happens once, in `ExBdd.Runtime`, via the step registry. Registry keys are now `{:expression, source}` / `{:regex, {source, opts}}` tuples (**breaking** for code reading `DiscoveryResult.step_registry` directly).
+- Hook internals changed shape: hook tuples are now `{type, tag, name, {module, function}}`, `ExBdd.Hooks.run_before_hooks`/`run_after_hooks` take an optional around-callback and return `{:error, reason, hook_name}` on failure, and `ExBdd.RunCoordinator.record_attachment/2` takes a message reference.
 - A `.feature` and `.feature.md` file that would generate the same test module now fail compilation with a clear error (previously the second silently redefined the first).
 
 ### New Features
 
-- **Cucumber Messages** (#28). Setting `config :cucumber, messages: "cucumber-messages.ndjson"` writes a complete [Cucumber Messages](https://github.com/cucumber/messages) NDJSON stream for the run — sources, Gherkin documents, pickles, step definitions, hooks, and the full test-case/test-step lifecycle with statuses, durations, retry attempts, and attachments. Without the config nothing is emitted and the runtime path is unchanged. Known deltas from the reference stream are documented in `Cucumber.Messages`.
+- **Cucumber Messages** (#28). Setting `config :ex_bdd, messages: "cucumber-messages.ndjson"` writes a complete [Cucumber Messages](https://github.com/cucumber/messages) NDJSON stream for the run — sources, Gherkin documents, pickles, step definitions, hooks, and the full test-case/test-step lifecycle with statuses, durations, retry attempts, and attachments. Without the config nothing is emitted and the runtime path is unchanged. Known deltas from the reference stream are documented in `ExBdd.Messages`.
 - **Markdown feature files** (#29). `*.feature.md` files ([Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md)) are discovered alongside `*.feature`: keyword headings, bullet-list steps, fenced-code docstrings, indented tables, code-span tags — everything else is prose. Error locations and message locations reference the Markdown source lines.
-- **Retry** (#26). Retry failing scenarios with `config :cucumber, retry: n`, overridable per scenario/examples/outline/rule/feature with `@retry-n` tags (most specific wins; `@retry-0` exempts). Each attempt re-runs the full lifecycle with a fresh context (`context.retry_attempt`); undefined, ambiguous, and pending scenarios never retry.
-- **Attachments** (#25). `Cucumber.attach/4` (plus `Cucumber.log/2` and `Cucumber.link/2`) attaches data to the current step or hook from any step definition or hook. Failing steps list their scenario's attachments; with messages enabled each attachment is emitted as an `attachment` envelope.
+- **Retry** (#26). Retry failing scenarios with `config :ex_bdd, retry: n`, overridable per scenario/examples/outline/rule/feature with `@retry-n` tags (most specific wins; `@retry-0` exempts). Each attempt re-runs the full lifecycle with a fresh context (`context.retry_attempt`); undefined, ambiguous, and pending scenarios never retry.
+- **Attachments** (#25). `ExBdd.attach/4` (plus `ExBdd.log/2` and `ExBdd.link/2`) attaches data to the current step or hook from any step definition or hook. Failing steps list their scenario's attachments; with messages enabled each attachment is emitted as an `attachment` envelope.
 - **Run-level, step-level, and named hooks** (#27). `before_all`/`after_all` run once per test run (lazily, `@async`-safe, with the `before_all` context merged into every scenario); `before_step`/`after_step` bracket every step, with `after_step` seeing the step's status; any hook takes `name:`, which shows up in failure output and lifts the one-hook-per-kind-per-module limit.
-- **Pending and skipped step results** (#21). Steps and before hooks can return `:pending`/`{:pending, message}` — halts the scenario and fails it with `Cucumber.PendingStepError` — or `:skipped`/`{:skipped, reason}` — halts without failing (ExUnit has no runtime-skip API, so the summary counts it as passed). After hooks still run in both cases.
-- **Custom parameter types** (#23). Register domain types in support files with `use Cucumber.ParameterTypes` and `parameter_type :flight, regexp: ~r/.../, transform: fn ... end`, then use `{flight}` in step patterns like any built-in.
+- **Pending and skipped step results** (#21). Steps and before hooks can return `:pending`/`{:pending, message}` — halts the scenario and fails it with `ExBdd.PendingStepError` — or `:skipped`/`{:skipped, reason}` — halts without failing (ExUnit has no runtime-skip API, so the summary counts it as passed). After hooks still run in both cases.
+- **Custom parameter types** (#23). Register domain types in support files with `use ExBdd.ParameterTypes` and `parameter_type :flight, regexp: ~r/.../, transform: fn ... end`, then use `{flight}` in step patterns like any built-in.
 - **Regular expression step definitions** (#24). The `step` macro accepts `~r//` regexes alongside cucumber expressions; the regex must match the entire step text, and captures arrive in `context.args` as strings.
 - **The Rule keyword** (#19). Rules group scenarios with their own description, tags, and `Background:` (run order: feature background → rule background → steps); `Example:` is accepted as a synonym for `Scenario:`.
 - **Backtick docstrings and media types** (#18). ` ``` ` works as an alternative docstring delimiter, and an optional media type after the opening delimiter (e.g. ` ```json `) is available as `context.docstring_media_type`.
@@ -88,18 +130,18 @@ This release completes the Cucumber Compatibility Kit roadmap (#17–#29) and ma
 
 ### Bug Fixes
 
-- **Ambiguous steps are now detected** (#20). A step matching more than one definition previously executed an arbitrary first match and passed silently; it now raises `Cucumber.AmbiguousStepError` listing every matching pattern with its `file:line`.
+- **Ambiguous steps are now detected** (#20). A step matching more than one definition previously executed an arbitrary first match and passed silently; it now raises `ExBdd.AmbiguousStepError` listing every matching pattern with its `file:line`.
 - **Step failure stack traces point at the feature file** (#22). The first frame of a failing step's trace is now `feature_file:step_line`, followed by the step definition; internal runtime frames are filtered out.
 - The parser no longer hangs on a feature file that ends in description text.
-- `Cucumber.Hooks.collect_hooks/1` now finds hook modules compiled into the application but not yet loaded (previously they were silently dropped).
-- Running discovery more than once in the same VM no longer crashes on already-loaded step files or silently drops hooks and parameter types — `Cucumber.Discovery` now caches each file's modules for the passes where `Code.require_file/1` returns `nil`. A step or support file loaded by something other than discovery (where the modules are unknowable) now raises a clear error instead of yielding an empty registry.
+- `ExBdd.Hooks.collect_hooks/1` now finds hook modules compiled into the application but not yet loaded (previously they were silently dropped).
+- Running discovery more than once in the same VM no longer crashes on already-loaded step files or silently drops hooks and parameter types — `ExBdd.Discovery` now caches each file's modules for the passes where `Code.require_file/1` returns `nil`. A step or support file loaded by something other than discovery (where the modules are unknowable) now raises a clear error instead of yielding an empty registry.
 - `context.docstring_media_type` now substitutes scenario outline placeholders, like the docstring content does.
 
 ### Improvements
 
 - The emitted `gherkinDocument` carries source comments, per-tag source lines, and docstring delimiter styles (new parser fields; published struct shapes unchanged), and step statuses follow CCK semantics — e.g. unexecuted steps after a failure report `UNDEFINED`/`AMBIGUOUS` when they'd have been, rather than blanket `SKIPPED`.
 - Generated feature modules no longer embed the step registry and hook list in their AST; both live in `:persistent_term` under per-compilation keys.
-- New `Cucumber.BehaviorCase` test harness (repo-internal) makes failing, pending, undefined, and ambiguous scenarios assertable in the test suite, backed by vendored CCK fixtures.
+- New `ExBdd.BehaviorCase` test harness (repo-internal) makes failing, pending, undefined, and ambiguous scenarios assertable in the test suite, backed by vendored CCK fixtures.
 - Bumped Credo to 1.7.19 for Elixir 1.20 compatibility.
 
 ## v0.9.1 (2026-05-12)
@@ -107,18 +149,18 @@ This release completes the Cucumber Compatibility Kit roadmap (#17–#29) and ma
 ### Bug Fixes
 
 - **Gherkin parser: comment lines no longer drop scenarios.** Previously, a `# …` line between Background and the first Scenario, between scenarios, between steps, or between a tag and the following `Scenario:` / `Examples:` keyword caused **scenarios in the file to be silently dropped**, with no error raised. The parser now recognizes `#`-prefixed lines as skippable wherever blank lines are valid (including interspersed within tag groups). Comments inside docstrings remain content (unchanged); comments inside data tables and trailing inline comments are still not supported.
-- **Parser no longer silently truncates on partial parses.** `Gherkin.Parser.parse/1` used to return a partial feature when the parser stopped before end of file — masking exactly the kind of bug above. It now raises `Gherkin.ParseError` if any non-whitespace content remains unconsumed.
+- **Parser no longer silently truncates on partial parses.** `ExBdd.Gherkin.Parser.parse/1` used to return a partial feature when the parser stopped before end of file — masking exactly the kind of bug above. It now raises `ExBdd.Gherkin.ParseError` if any non-whitespace content remains unconsumed.
 
 ### Improvements
 
-- **Empty-feature warning.** `Cucumber.Compiler` now emits `IO.warn` if a feature file parses to zero scenarios — a defensive net for parser regressions of the shape above. The warning fires when `Cucumber.compile_features!/1` runs (typically from `test/test_helper.exs` at `mix test` time). **Heads-up for `mix test --warnings-as-errors`:** projects that check in scaffold `.feature` files with no scenarios will trip this and abort the test suite until at least one scenario is added. (`mix compile --warnings-as-errors` is unaffected — the warning is not emitted during `.ex` compilation.)
+- **Empty-feature warning.** `ExBdd.Compiler` now emits `IO.warn` if a feature file parses to zero scenarios — a defensive net for parser regressions of the shape above. The warning fires when `ExBdd.compile_features!/1` runs (typically from `test/test_helper.exs` at `mix test` time). **Heads-up for `mix test --warnings-as-errors`:** projects that check in scaffold `.feature` files with no scenarios will trip this and abort the test suite until at least one scenario is added. (`mix compile --warnings-as-errors` is unaffected — the warning is not emitted during `.ex` compilation.)
 
 ## v0.9.0 (2026-02-10)
 
 ### New Features
 
-- **Igniter Installer**: Added `mix cucumber.install` task for automated project setup
-  - Adds `Cucumber.compile_features!()` to `test/test_helper.exs`
+- **Igniter Installer**: Added `mix ex_bdd.install` task for automated project setup
+  - Adds `ExBdd.compile_features!()` to `test/test_helper.exs`
   - Configures `test_ignore_filters` in `mix.exs`
 
 ### Improvements
@@ -134,11 +176,11 @@ This release completes the Cucumber Compatibility Kit roadmap (#17–#29) and ma
 
 ### Breaking Changes
 
-- **Official Cucumber Expression Syntax**: Updated to match the official Cucumber Expression syntax
+- **Official ExBdd Expression Syntax**: Updated to match the official ExBdd Expression syntax
   - `(text)` now means **optional text** (was alternation with `|`)
   - `word1/word2` is the new **alternation** syntax (replaces `(a|b)`)
   - New escape sequences: `\(`, `\)`, `\/`, `\\`
-  - Example: `"I have {int} cucumber(s)"` matches both singular and plural
+  - Example: `"I have {int} ex_bdd(s)"` matches both singular and plural
   - Example: `"I click/tap the button"` matches either verb
 
 ### Migration from v0.7.0
@@ -285,7 +327,7 @@ step "I click/tap the button", context do
 
 ### Complete Architecture Redesign
 
-This release completely redesigns the Cucumber library to follow Ruby Cucumber conventions with auto-discovery of features and step definitions.
+This release completely redesigns the ExBdd library to follow Ruby Cucumber conventions with auto-discovery of features and step definitions.
 
 #### Breaking Changes
 
@@ -294,12 +336,12 @@ This release completely redesigns the Cucumber library to follow Ruby Cucumber c
    - Feature files must be in `test/features/`
    - Step definitions must be in `test/features/step_definitions/`
    - Support files can be in `test/features/support/`
-   - Just call `Cucumber.compile_features!()` in `test_helper.exs`
+   - Just call `ExBdd.compile_features!()` in `test_helper.exs`
 
 2. **New Step Definition Syntax**
    - Use `step` macro instead of `defstep`
-   - Step definitions now use `use Cucumber.StepDefinition`
-   - No more `use Cucumber, feature: "..."`
+   - Step definitions now use `use ExBdd.StepDefinition`
+   - No more `use ExBdd, feature: "..."`
 
 3. **Simplified API**
    - Main module only exports `compile_features!/1`
@@ -334,7 +376,7 @@ This release completely redesigns the Cucumber library to follow Ruby Cucumber c
    ```elixir
    # Old
    defmodule MyFeatureTest do
-     use Cucumber, feature: "my_feature.feature"
+     use ExBdd, feature: "my_feature.feature"
 
      defstep "I do something", context do
        {:ok, context}
@@ -343,7 +385,7 @@ This release completely redesigns the Cucumber library to follow Ruby Cucumber c
 
    # New
    defmodule MySteps do
-     use Cucumber.StepDefinition
+     use ExBdd.StepDefinition
 
      step "I do something", context do
        {:ok, context}
@@ -358,7 +400,7 @@ This release completely redesigns the Cucumber library to follow Ruby Cucumber c
 
    # New
    ExUnit.start()
-   Cucumber.compile_features!()
+   ExBdd.compile_features!()
    ```
 
 ## v0.2.0 (2025-05-23)
@@ -366,7 +408,7 @@ This release completely redesigns the Cucumber library to follow Ruby Cucumber c
  New Features
 
   1. Shared Steps Support (Major Feature)
-    - Added Cucumber.SharedSteps module for creating reusable step definitions
+    - Added ExBdd.SharedSteps module for creating reusable step definitions
     - Allows step definitions to be defined in separate modules and imported
     - Supports composition of step libraries across test files
     - Maintains proper error reporting with accurate line numbers

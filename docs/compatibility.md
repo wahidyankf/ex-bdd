@@ -1,10 +1,10 @@
 # Compatibility boundaries
 
-Cucumber for Elixir runs 43 of 49 samples from the Cucumber Compatibility Kit
+ExBdd for Elixir runs 43 of 49 samples from the Cucumber Compatibility Kit
 (CCK) v31.0.0 at commit `0a3cc60bf3a783bfcbdeb8b754ce46860e0388e5`. All vendored feature
 files, reference streams, and the attachment PDF match that revision byte for
 byte. These approvals establish compatibility for the covered behavior subject
-to the allowances below; they do not establish complete Cucumber, Gherkin,
+to the allowances below; they do not establish complete ExBdd, Gherkin,
 Cucumber Expressions, or formatter compatibility.
 
 ## Messages contract
@@ -15,14 +15,14 @@ Schema bundle is vendored at `test/fixtures/messages/messages.schema.json`, from
 (tag `v34.2.1`). Every raw envelope in all supported samples is validated
 against 34.2.1, including metadata and fields later removed for comparison.
 
-`Cucumber.CckSchema` is a test-only, dependency-free evaluator of the vocabulary
+`ExBdd.CckSchema` is a test-only, dependency-free evaluator of the vocabulary
 used by this pinned bundle: references (including document-local definitions),
 objects, arrays, required/unknown properties, scalar types, enums, numeric bounds,
 and minimum array lengths. Unknown validation keywords fail closed. It is not a
 general JSON Schema engine. Schema validation proves the emitted shape; optional
 fields and unimplemented message types are not promises of implemented features.
 
-`Cucumber.CckStream` additionally checks one message per envelope, metadata first
+`ExBdd.CckStream` additionally checks one message per envelope, metadata first
 and exactly once, globally unique IDs, references to earlier envelopes of the
 right message type, one completed run, paired run hooks, and complete ordered
 steps within each active attempt. Attachments must reference that attempt's active
@@ -51,7 +51,7 @@ Messages model, or compatibility with every consumer.
 | Excluded: reference CLI reverse-order option absent; ExUnit controls order | `multiple-features-reversed` |
 | Excluded: pending/skipped use return values here, not exceptions; return-value samples are approved | `pending-exception`, `skipped-exception` |
 | Excluded: reference CLI runner-crash injection absent | `test-run-exception` |
-| Excluded: discovery raises `Cucumber.UndefinedParameterTypeError` before a run, rather than emitting `undefinedParameterType` | `unknown-parameter-type` |
+| Excluded: discovery raises `ExBdd.UndefinedParameterTypeError` before a run, rather than emitting `undefinedParameterType` | `unknown-parameter-type` |
 
 An inventory test requires every sample in the pinned upstream tree to be either
 approved or explicitly excluded. Broader Gherkin parser/dialect and Cucumber
@@ -60,7 +60,7 @@ and explicit support matrices needed for each.
 
 ## Comparison allowances
 
-All approvals use these rules, implemented in `Cucumber.CckApproval`:
+All approvals use these rules, implemented in `ExBdd.CckApproval`:
 
 | Category | Allowance and boundary |
 | --- | --- |
@@ -75,7 +75,7 @@ Three sample-specific allowances remain:
 
 | Sample | Additional allowance |
 | --- | --- |
-| `global-hooks-beforeall-error` | The reference aborts before creating cases. ExUnit still executes and fails scenarios with `Cucumber.BeforeAllError`. Case and step lifecycle envelopes are removed **only from equality**; our entire emitted lifecycle must validate first. This is a behavior difference. |
+| `global-hooks-beforeall-error` | The reference aborts before creating cases. ExUnit still executes and fails scenarios with `ExBdd.BeforeAllError`. Case and step lifecycle envelopes are removed **only from equality**; our entire emitted lifecycle must validate first. This is a behavior difference. |
 | `retry-ambiguous` | The reference registers identical patterns twice; discovery here rejects exact duplicates. Two distinct overlapping patterns reproduce ambiguity, and step-definition patterns are excluded from equality. |
 | `markdown` | Only the feature description is excluded. The reference has tokenizer-recovery text `\| boz \| boo \|`; our Markdown parser emits no Markdown descriptions. |
 
@@ -84,7 +84,7 @@ Three sample-specific allowances remain:
 Offline checks (no GitHub access or extra validator dependency):
 
 ```sh
-mix test test/cucumber/cck_approval_test.exs test/cucumber/cck_validation_test.exs test/cucumber/cck_fixtures_test.exs test/cucumber/behavior/messages_emission_test.exs
+mix test test/ex_bdd/cck_approval_test.exs test/ex_bdd/cck_validation_test.exs test/ex_bdd/cck_fixtures_test.exs test/ex_bdd/behavior/messages_emission_test.exs
 ```
 
 Verify the immutable fixture provenance online with GitHub CLI authentication:

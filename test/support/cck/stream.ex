@@ -1,4 +1,4 @@
-defmodule Cucumber.CckStream do
+defmodule ExBdd.CckStream do
   @moduledoc """
   Integrity assertions on complete, raw Messages streams before approval scrubbing.
   Attempts are tracked independently so parallel scenarios may interleave.
@@ -14,7 +14,7 @@ defmodule Cucumber.CckStream do
       envelopes
       |> Enum.with_index()
       |> Enum.reduce(state, fn {envelope, index}, state ->
-        Cucumber.CckSchema.assert_valid(envelope)
+        ExBdd.CckSchema.assert_valid(envelope)
         [{type, payload}] = Map.to_list(envelope)
         assert type != "meta" or index == 0, "meta must occur once, first"
         assert state.run != :finished, "message after testRunFinished"

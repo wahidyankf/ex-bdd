@@ -1,5 +1,5 @@
 defmodule GlobalHooksSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "the run-level setup has happened", context do

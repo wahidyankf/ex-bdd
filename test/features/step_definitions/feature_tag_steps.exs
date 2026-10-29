@@ -1,5 +1,5 @@
 defmodule FeatureTagSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "the database is initialized", context do

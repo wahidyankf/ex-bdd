@@ -1,23 +1,23 @@
 # Attachments
 
-Cucumber lets you attach arbitrary data — screenshots, response payloads,
+ExBdd lets you attach arbitrary data — screenshots, response payloads,
 logs, links — while a scenario runs. Attachments are recorded against the
 step (or hook execution) that attached them. Until a step fails they are
 invisible; a failing step's error output lists everything the scenario
-attached. When Cucumber Messages output is enabled (`config :cucumber,
+attached. When Cucumber Messages output is enabled (`config :ex_bdd,
 messages: "path.ndjson"`), attachments are also emitted as `attachment`
 envelopes in the message stream, attributed to their step or hook, where
 standard Cucumber report tooling can render them.
 
 ## Attaching data
 
-`Cucumber.attach/4` works from any step definition or hook and returns the
+`ExBdd.attach/4` works from any step definition or hook and returns the
 context unchanged, so it composes with any return style:
 
 ```elixir
 step "the API responds", context do
   context
-  |> Cucumber.attach(response.body, "application/json")
+  |> ExBdd.attach(response.body, "application/json")
   |> Map.put(:response, response)
 end
 ```
@@ -28,7 +28,7 @@ Base64-encoded for transport:
 
 ```elixir
 step "I take a screenshot", context do
-  Cucumber.attach(context, {:bytes, screenshot()}, "image/png",
+  ExBdd.attach(context, {:bytes, screenshot()}, "image/png",
     filename: "checkout.png"
   )
 end
@@ -38,15 +38,15 @@ end
 
 ```elixir
 # Attach a log message (media type text/x.cucumber.log+plain)
-Cucumber.log(context, "user #{user.id} created")
+ExBdd.log(context, "user #{user.id} created")
 
 # Attach a link (media type text/uri-list)
-Cucumber.link(context, "https://dashboard.example.com/run/123")
+ExBdd.link(context, "https://dashboard.example.com/run/123")
 ```
 
 ## Attribution
 
-Each `Cucumber.Attachment` records where it came from:
+Each `ExBdd.Attachment` records where it came from:
 
 - `phase` — `:step`, `:before_scenario`, or `:after_scenario` (`nil` for
   attachments from a `before_all` or `after_all` hook, which belong to no

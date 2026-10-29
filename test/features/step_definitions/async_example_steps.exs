@@ -1,5 +1,5 @@
 defmodule AsyncExampleSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "an async step", context do

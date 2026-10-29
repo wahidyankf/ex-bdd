@@ -1,5 +1,5 @@
 defmodule RulesSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "a ledger entry for {string}", %{args: [entry]} = context do

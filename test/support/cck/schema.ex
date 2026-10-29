@@ -1,4 +1,4 @@
-defmodule Cucumber.CckSchema do
+defmodule ExBdd.CckSchema do
   @moduledoc """
   Offline validator for the JSON Schema vocabulary used by Messages 34.2.1.
 

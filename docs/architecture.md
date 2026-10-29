@@ -1,15 +1,15 @@
-# Cucumber Architecture
+# ExBdd Architecture
 
-This document provides an overview of the Cucumber implementation architecture, explaining the core components and how they interact.
+This document provides an overview of the ExBdd implementation architecture, explaining the core components and how they interact.
 
 ## Core Components
 
 ```
-Cucumber
+ExBdd
   ├── Discovery (Feature/Step/Hook Finding)
   ├── StepRegistry (Step Definitions & Matching)
   ├── Gherkin (Parser: .feature and .feature.md)
-  ├── Gherkin.Pickles (Scenario Expansion)
+  ├── ExBdd.Gherkin.Pickles (Scenario Expansion)
   ├── Expression (Parameter Matching)
   ├── Compiler (Test Generation)
   ├── Runtime (Scenario Lifecycle & Step Execution)
@@ -32,7 +32,7 @@ Discovery.discover()
 
 ### Step Registry
 
-`Cucumber.StepRegistry` is the complete set of step definitions and parameter types for a run, and the one place step text is matched against them. Discovery builds it from the loaded step and parameter-type modules; building merges the parameter types, compiles every pattern once, rejects duplicate definitions and types, drops (with a warning) definitions that use undefined parameter types, and orders definitions by file and line.
+`ExBdd.StepRegistry` is the complete set of step definitions and parameter types for a run, and the one place step text is matched against them. Discovery builds it from the loaded step and parameter-type modules; building merges the parameter types, compiles every pattern once, rejects duplicate definitions and types, drops (with a warning) definitions that use undefined parameter types, and orders definitions by file and line.
 
 ```elixir
 StepRegistry.new(step_modules, parameter_type_modules)
@@ -40,11 +40,11 @@ StepRegistry.match(registry, step_text)
   # => {:ok, definition, args} | :undefined | {:ambiguous, [{definition, args}]}
 ```
 
-Each scenario is matched once, into a test case (`lib/cucumber/test_case.ex`): its scenario hooks selected by tag and the step definitions every step matches, in run order. The runtime executes the test case, retries reuse it, and the Cucumber Messages emitter builds `testCase.testSteps` from it, so hook selection and matching happen in exactly one place. A step's arguments are converted only when the step runs, on every attempt: parameter type transforms are user code, and may depend on what earlier hooks and steps set up.
+Each scenario is matched once, into a test case (`lib/ex_bdd/test_case.ex`): its scenario hooks selected by tag and the step definitions every step matches, in run order. The runtime executes the test case, retries reuse it, and the Cucumber Messages emitter builds `testCase.testSteps` from it, so hook selection and matching happen in exactly one place. A step's arguments are converted only when the step runs, on every attempt: parameter type transforms are user code, and may depend on what earlier hooks and steps set up.
 
 ### Gherkin Parser
 
-The Gherkin parser uses NimbleParsec to parse `.feature` files into Elixir structs. A separate line-scanner parser (`Gherkin.Markdown`) parses `.feature.md` ([Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md)) files into the same structs. Together they handle:
+The Gherkin parser uses NimbleParsec to parse `.feature` files into Elixir structs. A separate line-scanner parser (`ExBdd.Gherkin.Markdown`) parses `.feature.md` ([Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md)) files into the same structs. Together they handle:
 
 - Feature declarations with descriptions and tags
 - Rules with their own backgrounds, tags, and descriptions
@@ -72,17 +72,17 @@ Feature File (Text) → NimbleParsec Parser → Elixir Structs
 The Expression engine uses NimbleParsec to parse and match step text against step definitions. It supports:
 
 - Cucumber expressions with parameter types (`{string}`, `{int}`, `{float}`, `{word}`, `{atom}`)
-- Custom parameter types defined with `Cucumber.ParameterTypes` (regexp + transform)
+- Custom parameter types defined with `ExBdd.ParameterTypes` (regexp + transform)
 - Optional parameters (`{int?}`)
 - Optional text (`(s)` for pluralization)
 - Alternation (`click/tap`)
 - Escape sequences (`\{`, `\}`, `\(`, `\)`, `\/`, `\\`)
 - Parameter conversion (string to typed values)
 
-Step definitions can also use plain regular expressions (`step ~r/.../`), which participate in the same single matching path in `Cucumber.StepRegistry` — so ambiguity between a regex and a cucumber expression is detected like any other ambiguity and raises `Cucumber.AmbiguousStepError`.
+Step definitions can also use plain regular expressions (`step ~r/.../`), which participate in the same single matching path in `ExBdd.StepRegistry` — so ambiguity between a regex and a cucumber expression is detected like any other ambiguity and raises `ExBdd.AmbiguousStepError`.
 
 ```elixir
-defmodule Cucumber.Expression do
+defmodule ExBdd.Expression do
   # Compiles a cucumber expression into a matchable AST
   def compile(pattern) do
     # Parses pattern using NimbleParsec
@@ -99,7 +99,7 @@ end
 
 ### Compiler
 
-Features are first expanded into *pickles* — one concrete, runnable scenario per outline row, with rule backgrounds and tags folded in — by `Gherkin.Pickles`. The compiler then generates ExUnit test modules from them:
+Features are first expanded into *pickles* — one concrete, runnable scenario per outline row, with rule backgrounds and tags folded in — by `ExBdd.Gherkin.Pickles`. The compiler then generates ExUnit test modules from them:
 
 ```elixir
 Compiler.compile_features!()
@@ -117,7 +117,7 @@ Each generated test body is a single call into the runtime, which owns the whole
 
 ```elixir
 Runtime.run_scenario(context, ...)
-  ├── Builds the scenario's test case once (Cucumber.TestCase): scenario hooks
+  ├── Builds the scenario's test case once (ExBdd.TestCase): scenario hooks
   │   selected by tag, every step matched to its step definitions
   │   (0 → undefined, >1 → ambiguous), test steps numbered in run order
   ├── Runs before-scenario hooks (and lazily before_all, once per run)
@@ -136,7 +136,7 @@ A GenServer holding run-wide state: `before_all` once-guards and their shared co
 
 ### Messages
 
-With `config :cucumber, messages: "path.ndjson"`, the run emits the standard [Cucumber Messages](https://github.com/cucumber/messages) stream — source, gherkinDocument, pickles, and testCase/testStep lifecycle events — as NDJSON, verified against the reference implementation by the Cucumber Compatibility Kit approval suite in this repo.
+With `config :ex_bdd, messages: "path.ndjson"`, the run emits the standard [Cucumber Messages](https://github.com/cucumber/messages) stream — source, gherkinDocument, pickles, and testCase/testStep lifecycle events — as NDJSON, verified against the reference implementation by the Cucumber Compatibility Kit approval suite in this repo.
 
 The stream is built by a pure message recorder (`lib/cucumber/messages/recorder.ex`): run-time events go in (a test case opened, an attempt started, a step finished, a run hook finished, the run ended) and envelopes come out. It owns message ids, the status of steps that never ran, closing crashed test cases as UNKNOWN, and NDJSON encoding, and is tested by feeding it event sequences. `RunCoordinator` holds it and feeds it events in order; `Messages.Emitter` builds the run's static envelopes and turns the runner's progress into events.
 
@@ -146,7 +146,7 @@ The StepDefinition module provides the DSL for defining steps:
 
 ```elixir
 defmodule MySteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
 
   step "pattern", context do
     # implementation
@@ -157,7 +157,7 @@ end
 ## Execution Flow
 
 1. **Discovery Phase** (at compile time)
-   - `Cucumber.compile_features!()` is called in test_helper.exs
+   - `ExBdd.compile_features!()` is called in test_helper.exs
    - Discovery system finds all features and step definitions
    - The step registry is built from step definition and parameter type modules
 
@@ -208,7 +208,7 @@ Step Files → Discovery → StepRegistry
 
 ## Error Handling
 
-Cucumber provides enhanced error messages with rich context:
+ExBdd provides enhanced error messages with rich context:
 
 1. **Undefined Steps**: Shows the exact step text with clickable file:line references and suggests implementation
 2. **Step Failures**: Displays comprehensive error information including:
@@ -226,7 +226,7 @@ The StepError module handles all error formatting, ensuring consistent and helpf
 
 The architecture supports several extension points:
 
-1. **Custom Parameter Types**: Define your own `{type}` parameters with `Cucumber.ParameterTypes`
+1. **Custom Parameter Types**: Define your own `{type}` parameters with `ExBdd.ParameterTypes`
 2. **Cucumber Messages**: Consume the NDJSON stream with any standards-based report tooling
-3. **Hooks**: Run-level, scenario, and step hooks with tags and names (via `Cucumber.Hooks`)
+3. **Hooks**: Run-level, scenario, and step hooks with tags and names (via `ExBdd.Hooks`)
 4. **Step Libraries**: Create reusable step definition modules
