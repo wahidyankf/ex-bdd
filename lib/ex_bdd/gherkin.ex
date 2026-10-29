@@ -227,6 +227,8 @@ defmodule ExBdd.Gherkin.Parser do
   It implements a subset of the Gherkin language focused on core BDD concepts.
   """
 
+  alias ExBdd.Gherkin.{Markdown, NimbleParser}
+
   @doc """
   Parses a Gherkin feature file from a string into structured data.
 
@@ -270,10 +272,10 @@ defmodule ExBdd.Gherkin.Parser do
   """
   @spec parse(String.t(), String.t()) :: ExBdd.Gherkin.Feature.t()
   def parse(content, path) do
-    if ExBdd.Gherkin.Markdown.markdown_path?(path) do
-      ExBdd.Gherkin.Markdown.parse(content)
+    if Markdown.markdown_path?(path) do
+      Markdown.parse(content)
     else
-      ExBdd.Gherkin.NimbleParser.parse(content)
+      NimbleParser.parse(content)
     end
   rescue
     error in ExBdd.Gherkin.ParseError -> reraise %{error | file: path}, __STACKTRACE__

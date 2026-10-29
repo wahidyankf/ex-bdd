@@ -18,7 +18,16 @@ defmodule ExBdd.Gherkin.NimbleParser do
 
   import NimbleParsec
 
-  alias ExBdd.Gherkin.{Background, Examples, Feature, Rule, Scenario, ScenarioOutline, Step}
+  alias ExBdd.Gherkin.{
+    Background,
+    Examples,
+    Feature,
+    Rule,
+    Scenario,
+    ScenarioOutline,
+    Step,
+    Tables
+  }
 
   # ============================================================
   # LEVEL 1: PRIMITIVES
@@ -477,7 +486,7 @@ defmodule ExBdd.Gherkin.NimbleParser do
             rest: error_snippet(rest)
         end
 
-        feature |> put_comments(gherkin_string) |> ExBdd.Gherkin.Tables.validate!(gherkin_string)
+        feature |> put_comments(gherkin_string) |> Tables.validate!(gherkin_string)
 
       {:error, message, rest, _context, {line, line_offset}, offset} ->
         raise ExBdd.Gherkin.ParseError,
@@ -580,7 +589,7 @@ defmodule ExBdd.Gherkin.NimbleParser do
   @doc false
   # A table row as {cells, line}.
   def build_table_row([{parts, {line, _offset}}]) do
-    {parts |> Enum.join() |> ExBdd.Gherkin.Tables.cells(), line - 1}
+    {parts |> Enum.join() |> Tables.cells(), line - 1}
   end
 
   @doc false

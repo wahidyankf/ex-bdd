@@ -49,7 +49,16 @@ defmodule ExBdd.Gherkin.Markdown do
   exactly as it does for `.feature` files.
   """
 
-  alias ExBdd.Gherkin.{Background, Examples, Feature, Rule, Scenario, ScenarioOutline, Step}
+  alias ExBdd.Gherkin.{
+    Background,
+    Examples,
+    Feature,
+    Rule,
+    Scenario,
+    ScenarioOutline,
+    Step,
+    Tables
+  }
 
   @header_regex ~r/^\#{1,6}\s(Feature|Rule|Background|Scenario Outline|Scenario Template|Scenario|Example|Examples|Scenarios):(.*)$/
   @step_regex ~r/^\s*[*+-]\s*(Given|When|Then|And|But) (.*)$/
@@ -102,7 +111,7 @@ defmodule ExBdd.Gherkin.Markdown do
     |> Enum.with_index()
     |> Enum.reduce(state, &handle_line/2)
     |> finish()
-    |> ExBdd.Gherkin.Tables.validate!(source)
+    |> Tables.validate!(source)
   end
 
   # --- Line dispatch ---------------------------------------------------
@@ -322,7 +331,7 @@ defmodule ExBdd.Gherkin.Markdown do
     if separator_row?(raw) do
       state
     else
-      attach_table_row(ExBdd.Gherkin.Tables.cells(raw), raw, line, state)
+      attach_table_row(Tables.cells(raw), raw, line, state)
     end
   end
 
@@ -365,7 +374,7 @@ defmodule ExBdd.Gherkin.Markdown do
     trimmed = String.trim(raw)
 
     String.starts_with?(trimmed, "|") and
-      Enum.any?(ExBdd.Gherkin.Tables.cells(raw), &Regex.match?(@separator_cell_regex, &1))
+      Enum.any?(Tables.cells(raw), &Regex.match?(@separator_cell_regex, &1))
   end
 
   # --- Docstrings (fenced code blocks) ---------------------------------
