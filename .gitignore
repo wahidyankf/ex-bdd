@@ -22,4 +22,7 @@ cucumber-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
+# Transient local worktrees (see extract-ex-bdd merge).
+/worktrees/
+
 **/.claude/settings.local.json
