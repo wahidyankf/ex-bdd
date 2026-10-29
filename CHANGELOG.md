@@ -1,10 +1,52 @@
 # Changelog
 
-## Unreleased
+## v0.1.0 (2026-10-29)
+
+This fork is independent of upstream [huddlz-hq/cucumber](https://github.com/huddlz-hq/cucumber)
+and does not maintain upstream compatibility. It renames the 1.1.1 codebase
+(including the then-unreleased message-recorder change below) to `ex_bdd`
+and adds the `ExBdd` API surface.
 
 ### Changed
 
+- Renamed the OTP application from `:cucumber` to `:ex_bdd` and every
+  `Cucumber*` module to `ExBdd*`; `Gherkin.*` is now `ExBdd.Gherkin.*`.
+  The Hex package is `ex_bdd`, config moves from `config :cucumber` to
+  `config :ex_bdd`, and the ExUnit tag is `:ex_bdd`. Cucumber Messages
+  protocol names and values (`CUCUMBER_EXPRESSION`, the
+  `text/x.cucumber.gherkin` media types, the Cucumber Compatibility Kit
+  fixtures) are unchanged, as are `cucumber`/`cucumbers` example-domain
+  words in feature and step text. The Messages `meta` implementation name
+  is now `ex-bdd`.
+- `ExBdd.Compiler.compile_feature!/1` accepts a `:case_template` option
+  (default `ExUnit.Case`) so callers can compile features into their own
+  ExUnit case template; generated modules also expose
+  `__step_registry__/0`, and feature files at absolute paths (or with
+  punctuation in their segments) generate valid module names.
+- `ExBdd.Discovery.DiscoveryResult` carries the registry's
+  `parameter_types`, and `ExBdd.Compiler.compile_discovery!/1` compiles an
+  already-discovered result (with `:case_template` support), so callers can
+  transform the discovery between `discover/1` and compilation.
+- Kept standalone 1.1.1 behavior where it conflicts with the ported
+  behavior: step matching stays in the pre-compiled `ExBdd.StepRegistry`
+  (built once, transforms run only when the step does), scenarios still run
+  through the shared `ExBdd.TestCase` with retry and attachments, the
+  Messages stream is still built by the pure message recorder, and
+  `compile_features!/1` still compiles corpora that strict verification
+  would reject (undefined steps fail at runtime).
 - The Cucumber Messages stream is built by a pure message recorder that `ExBdd.RunCoordinator` holds. The stream is unchanged. The undocumented (`@doc false`) `ExBdd.RunCoordinator.record_message/1` replaces `message_context/0`, `take_message_ids/1`, `emit_runtime/1`, `finish_test_case/3` and `skip_unfinished_steps/3`.
+
+### Added
+
+- Strict behaviour-completeness verification: `ExBdd.Verifier.verify!/1`
+  checks a discovery result — no empty corpus, every feature has
+  executable scenarios, every scenario has an explicit `When` and `Then`,
+  every step matches exactly one binding, every binding is used — and
+  returns an `ExBdd.Verification` summary or raises
+  `ExBdd.VerificationError`. `ExBdd.verify_features!/1` discovers with the
+  usual `:features`/`:steps`/`:support` options and verifies.
+- `mix test:quick` runs compile with warnings as errors, a format check,
+  strict Credo, and the test suite.
 
 ## v1.1.1 (2026-10-25)
 
@@ -415,7 +457,7 @@ This release completely redesigns the ExBdd library to follow Ruby Cucumber conv
 * Initial release
 * Core features:
   * Gherkin parser with Background, Scenario, Step support
-  * ExBdd expressions with parameter types ({string}, {int}, {float}, {word})
+  * Cucumber expressions with parameter types ({string}, {int}, {float}, {word})
   * Data tables and docstring support
   * Tag filtering
   * Context passing between steps

@@ -17,7 +17,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-cucumber-*.tar
+ex_bdd-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/

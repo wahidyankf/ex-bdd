@@ -1,13 +1,12 @@
-defmodule Cucumber.MixProject do
+defmodule ExBdd.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/huddlz-hq/cucumber"
-  @version "1.1.1"
-  @description "Cucumber for Elixir: BDD testing framework with Gherkin syntax"
+  @version "0.1.0"
+  @description "ExBdd for Elixir: BDD testing framework with Gherkin syntax"
 
   def project do
     [
-      app: :cucumber,
+      app: :ex_bdd,
       version: @version,
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -17,9 +16,8 @@ defmodule Cucumber.MixProject do
       description: @description,
       package: package(),
       docs: docs(),
-      name: "Cucumber",
-      source_url: @source_url,
-      # Ignore Cucumber feature files (not *_test.exs pattern)
+      name: "ExBdd",
+      # Ignore ExBdd feature files (not *_test.exs pattern)
       test_ignore_filters: [
         ~r/features\/step_definitions/,
         ~r/features\/support/
@@ -32,6 +30,7 @@ defmodule Cucumber.MixProject do
       preferred_envs: [
         "test.watch": :test,
         precommit: :test,
+        "test:quick": :test,
         validate: :test
       ]
     ]
@@ -58,11 +57,14 @@ defmodule Cucumber.MixProject do
     ]
   end
 
+  # No source_url or repository link yet: this fork is independent of
+  # upstream huddlz-hq/cucumber and has no published remote. Add them when
+  # the fork gains canonical coordinates; never point them back at upstream.
   defp package do
     [
       maintainers: ["Micah Woods"],
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
+      links: %{},
       files: ~w(lib .formatter.exs mix.exs README.md LICENSE CHANGELOG.md docs)
     ]
   end
@@ -70,7 +72,6 @@ defmodule Cucumber.MixProject do
   defp docs do
     [
       main: "getting_started",
-      source_url: @source_url,
       extras: [
         "docs/getting_started.md",
         "docs/feature_files.md",
@@ -95,6 +96,12 @@ defmodule Cucumber.MixProject do
         "format",
         "credo --strict",
         "deps.unlock --unused",
+        "test"
+      ],
+      "test:quick": [
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "credo --strict",
         "test"
       ],
       validate: [
