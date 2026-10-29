@@ -1,5 +1,5 @@
 defmodule GlobalHooksSupport do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   before_all context, name: "start run-level services" do
     # Unlinked so it survives this (short-lived) calling process; the agent

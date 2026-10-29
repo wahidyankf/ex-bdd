@@ -1,5 +1,5 @@
 defmodule ExecutionOrderHooks do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   before_scenario "@track_execution", context do
     # Record that the feature hook ran

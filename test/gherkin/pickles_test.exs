@@ -1,14 +1,14 @@
-defmodule Gherkin.PicklesTest do
+defmodule ExBdd.Gherkin.PicklesTest do
   use ExUnit.Case, async: true
 
-  alias Gherkin.{Pickle, Pickles, PickleStep}
+  alias ExBdd.Gherkin.{Pickle, Pickles, PickleStep}
 
   defp compile(source, opts \\ []) do
     file = Keyword.get(opts, :file, "test/fixtures/generated/pickles_test.feature")
     start_id = Keyword.get(opts, :start_id, 0)
 
     source
-    |> Gherkin.Parser.parse()
+    |> ExBdd.Gherkin.Parser.parse()
     |> Map.put(:file, file)
     |> Pickles.compile(start_id)
   end
@@ -321,8 +321,8 @@ defmodule Gherkin.PicklesTest do
     end
 
     test "an outline with no Examples raises" do
-      outline = %Gherkin.ScenarioOutline{name: "Missing examples", examples: []}
-      feature = %Gherkin.Feature{name: "f", scenarios: [outline]}
+      outline = %ExBdd.Gherkin.ScenarioOutline{name: "Missing examples", examples: []}
+      feature = %ExBdd.Gherkin.Feature{name: "f", scenarios: [outline]}
 
       assert_raise RuntimeError,
                    ~r/Scenario Outline 'Missing examples' has no Examples section/,

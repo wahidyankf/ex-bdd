@@ -1,6 +1,6 @@
 # Writing Feature Files
 
-Feature files are the heart of Cucumber testing. They're written in Gherkin syntax, a business-readable domain-specific language that lets you describe application behavior without detailing how that behavior is implemented.
+Feature files are the heart of ExBdd testing. They're written in Gherkin syntax, a business-readable domain-specific language that lets you describe application behavior without detailing how that behavior is implemented.
 
 ## Feature File Structure
 

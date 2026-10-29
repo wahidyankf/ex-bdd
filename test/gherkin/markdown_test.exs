@@ -1,15 +1,15 @@
-defmodule Gherkin.MarkdownTest do
+defmodule ExBdd.Gherkin.MarkdownTest do
   use ExUnit.Case, async: true
 
-  alias Gherkin.Markdown
+  alias ExBdd.Gherkin.Markdown
 
   describe "parse/2 dispatch" do
     test ".feature.md paths parse as Markdown, others as plain Gherkin" do
       markdown = "# Feature: MD\n\n## Scenario: s\n\n* Given a step\n"
       plain = "Feature: Plain\n\nScenario: s\n  Given a step\n"
 
-      assert %Gherkin.Feature{name: "MD"} = Gherkin.Parser.parse(markdown, "cheese.feature.md")
-      assert %Gherkin.Feature{name: "Plain"} = Gherkin.Parser.parse(plain, "cheese.feature")
+      assert %ExBdd.Gherkin.Feature{name: "MD"} = ExBdd.Gherkin.Parser.parse(markdown, "cheese.feature.md")
+      assert %ExBdd.Gherkin.Feature{name: "Plain"} = ExBdd.Gherkin.Parser.parse(plain, "cheese.feature")
     end
   end
 
@@ -89,9 +89,9 @@ defmodule Gherkin.MarkdownTest do
         """)
 
       assert [scenario, outline] = feature.scenarios
-      assert %Gherkin.Scenario{keyword: "Example", name: "a concrete example"} = scenario
-      assert %Gherkin.ScenarioOutline{keyword: "Scenario Template"} = outline
-      assert [%Gherkin.Examples{keyword: "Scenarios", table_header: ["thing"]}] = outline.examples
+      assert %ExBdd.Gherkin.Scenario{keyword: "Example", name: "a concrete example"} = scenario
+      assert %ExBdd.Gherkin.ScenarioOutline{keyword: "Scenario Template"} = outline
+      assert [%ExBdd.Gherkin.Examples{keyword: "Scenarios", table_header: ["thing"]}] = outline.examples
     end
 
     test "headings without a Gherkin keyword are prose" do
@@ -236,7 +236,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "a step before any Scenario or Background raises" do
-      assert_raise Gherkin.ParseError, ~r/line 2.*Scenario or Background/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/line 2.*Scenario or Background/s, fn ->
         Markdown.parse("""
         # Feature: Loose step
         * Given a step with no home
@@ -245,7 +245,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "a step after an Examples table raises" do
-      assert_raise Gherkin.ParseError, ~r/before the Examples/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/before the Examples/s, fn ->
         Markdown.parse("""
         # Feature: Late step
         ## Scenario Outline: o
@@ -323,7 +323,7 @@ defmodule Gherkin.MarkdownTest do
 
     test "a row whose cell count differs from the first row raises at that row" do
       error =
-        assert_raise Gherkin.ParseError, fn ->
+        assert_raise ExBdd.Gherkin.ParseError, fn ->
           Markdown.parse("""
           # Feature: Ragged
           ## Scenario: s
@@ -353,7 +353,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "an indented table row with nothing to attach to raises" do
-      assert_raise Gherkin.ParseError, ~r/before a table row/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/before a table row/s, fn ->
         Markdown.parse("""
         # Feature: Orphan table
         ## Scenario: s
@@ -429,7 +429,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "a second fenced code block on one step raises" do
-      assert_raise Gherkin.ParseError, ~r/single docstring/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/single docstring/s, fn ->
         Markdown.parse("""
         # Feature: Greedy step
         ## Scenario: s
@@ -445,7 +445,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "an unclosed fence raises" do
-      assert_raise Gherkin.ParseError, ~r/closing ``` fence/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/closing ``` fence/s, fn ->
         Markdown.parse("""
         # Feature: Unclosed
         ## Scenario: s
@@ -492,7 +492,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "an Examples heading outside a Scenario Outline raises" do
-      assert_raise Gherkin.ParseError, ~r/Scenario Outline before an Examples/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/Scenario Outline before an Examples/s, fn ->
         Markdown.parse("""
         # Feature: Misplaced
         ## Scenario: not an outline
@@ -506,7 +506,7 @@ defmodule Gherkin.MarkdownTest do
 
   describe "backgrounds" do
     test "a Background after the first scenario raises" do
-      assert_raise Gherkin.ParseError, ~r/Background before the first Scenario/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/Background before the first Scenario/s, fn ->
         Markdown.parse("""
         # Feature: Late background
         ## Scenario: s
@@ -518,7 +518,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "a second Background raises" do
-      assert_raise Gherkin.ParseError, ~r/single Background/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/single Background/s, fn ->
         Markdown.parse("""
         # Feature: Two backgrounds
         ## Background:
@@ -530,7 +530,7 @@ defmodule Gherkin.MarkdownTest do
     end
 
     test "a tag before a Background raises instead of leaking onto the next scenario" do
-      assert_raise Gherkin.ParseError, ~r/line 2.*no tags before a Background/s, fn ->
+      assert_raise ExBdd.Gherkin.ParseError, ~r/line 2.*no tags before a Background/s, fn ->
         Markdown.parse("""
         # Feature: Tagged background
         `@wip`

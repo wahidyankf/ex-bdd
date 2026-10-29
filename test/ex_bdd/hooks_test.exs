@@ -1,0 +1,156 @@
+defmodule ExBdd.HooksTest do
+  use ExUnit.Case, async: true
+
+  describe "duplicate hook detection" do
+    test "raises CompileError when defining duplicate tagged hooks" do
+      code = """
+      defmodule DuplicateTaggedHooks do
+        use ExBdd.Hooks
+
+        before_scenario "@database", context do
+          {:ok, context}
+        end
+
+        before_scenario "@database", context do
+          {:ok, context}
+        end
+      end
+      """
+
+      assert_raise CompileError, ~r/Duplicate hook: before_scenario_database/, fn ->
+        Code.compile_string(code)
+      end
+    end
+
+    test "raises CompileError when defining duplicate global hooks" do
+      code = """
+      defmodule DuplicateGlobalHooks do
+        use ExBdd.Hooks
+
+        before_scenario context do
+          {:ok, context}
+        end
+
+        before_scenario context do
+          {:ok, context}
+        end
+      end
+      """
+
+      assert_raise CompileError, ~r/Duplicate hook: before_scenario_global/, fn ->
+        Code.compile_string(code)
+      end
+    end
+
+    test "allows different tags without error" do
+      code = """
+      defmodule DifferentTagsHooks do
+        use ExBdd.Hooks
+
+        before_scenario "@database", context do
+          {:ok, context}
+        end
+
+        before_scenario "@admin", context do
+          {:ok, context}
+        end
+      end
+      """
+
+      # Should compile without error
+      assert [{DifferentTagsHooks, _}] = Code.compile_string(code)
+    end
+  end
+
+  describe "hook filtering and execution" do
+    test "filter_hooks returns global hooks and hooks matching tags" do
+      defmodule FilterTestModule do
+        def global_hook(context), do: {:ok, context}
+        def database_hook(context), do: {:ok, context}
+        def special_hook(context), do: {:ok, context}
+      end
+
+      hooks = [
+        {:before_scenario, nil, nil, {FilterTestModule, :global_hook}},
+        {:before_scenario, "@database", nil, {FilterTestModule, :database_hook}},
+        {:before_scenario, "@special", nil, {FilterTestModule, :special_hook}}
+      ]
+
+      # With ["database"] tags, should get global + @database hooks
+      filtered = ExBdd.Hooks.filter_hooks(hooks, :before_scenario, ["database"])
+      assert length(filtered) == 2
+
+      # With ["database", "special"] tags, should get all 3 hooks
+      filtered_all = ExBdd.Hooks.filter_hooks(hooks, :before_scenario, ["database", "special"])
+      assert length(filtered_all) == 3
+
+      # With [] tags, should only get global hook
+      filtered_empty = ExBdd.Hooks.filter_hooks(hooks, :before_scenario, [])
+      assert length(filtered_empty) == 1
+    end
+
+    test "run_before_hooks runs the given hook steps in order, threading the context" do
+      defmodule RunTestModule do
+        def hook_a(context), do: {:ok, Map.put(context, :order, [:a])}
+        def hook_b(context), do: {:ok, Map.update!(context, :order, &(&1 ++ [:b]))}
+      end
+
+      # Tag selection happens when the test case is built (see
+      # ExBdd.TestCaseTest); the hooks module runs what it is given
+      {:ok, result} =
+        ExBdd.Hooks.run_before_hooks(
+          hook_steps([{RunTestModule, :hook_a}, {RunTestModule, :hook_b}]),
+          %{}
+        )
+
+      assert result.order == [:a, :b]
+    end
+
+    test "run_before_hooks accepts keyword list return values" do
+      defmodule KeywordReturnModule do
+        def keyword_hook(_context), do: [db_ready: true, cache: :warm]
+      end
+
+      {:ok, result} =
+        ExBdd.Hooks.run_before_hooks(hook_steps([{KeywordReturnModule, :keyword_hook}]), %{})
+
+      assert result.db_ready == true
+      assert result.cache == :warm
+    end
+
+    test "run_before_hooks raises on invalid return values" do
+      defmodule InvalidReturnModule do
+        def bad_hook(_context), do: :something_wrong
+      end
+
+      assert_raise RuntimeError, ~r/Invalid hook return value/, fn ->
+        ExBdd.Hooks.run_before_hooks(hook_steps([{InvalidReturnModule, :bad_hook}]), %{})
+      end
+    end
+  end
+
+  defp hook_steps(refs) do
+    refs
+    |> Enum.with_index()
+    |> Enum.map(fn {ref, position} ->
+      %ExBdd.TestCase.HookStep{position: position, name: nil, ref: ref}
+    end)
+  end
+
+  describe "collect_hooks/1" do
+    test "loads modules that are compiled into the application but not yet loaded" do
+      # Hook modules under test/support (or any compiled application) are
+      # loaded lazily; collect_hooks must not silently drop a module the
+      # code server hasn't loaded yet. ExBdd.ReloadableHooks exists only
+      # for this test — unload it to reproduce the pre-load state.
+      {:module, module} = Code.ensure_loaded(ExBdd.ReloadableHooks)
+      :code.purge(module)
+      :code.delete(module)
+      :code.purge(module)
+      refute :erlang.module_loaded(module)
+
+      assert [{:before_scenario, nil, nil, {^module, _fun}}] =
+               ExBdd.Hooks.collect_hooks([module])
+    end
+  end
+end

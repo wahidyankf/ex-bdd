@@ -1,5 +1,5 @@
 defmodule SimpleSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
 
   step "a simple step", context do
     Map.put(context, :simple, true)

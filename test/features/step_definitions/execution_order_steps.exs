@@ -1,5 +1,5 @@
 defmodule ExecutionOrderSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I record {string}", %{args: [event]} = context do

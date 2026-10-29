@@ -1,5 +1,5 @@
 defmodule DescriptionsSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "a noted base value {string}", %{args: [value]} do

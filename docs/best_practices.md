@@ -1,6 +1,6 @@
-# Best Practices for Cucumber Tests
+# Best Practices for ExBdd Tests
 
-This guide outlines best practices for writing and organizing your Cucumber tests to ensure they remain maintainable, readable, and effective.
+This guide outlines best practices for writing and organizing your ExBdd tests to ensure they remain maintainable, readable, and effective.
 
 ## Feature File Organization
 
@@ -100,7 +100,7 @@ Group related steps in the same module:
 ```elixir
 # test/features/step_definitions/authentication_steps.exs
 defmodule AuthenticationSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Login steps
@@ -243,7 +243,7 @@ end
 
 When an error occurs, you'll see output like:
 ```
-** (Cucumber.StepError) Step failed:
+** (ExBdd.StepError) Step failed:
 
   Then the order should be completed
 

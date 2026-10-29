@@ -1,8 +1,8 @@
 defmodule ShoppingSteps do
   @moduledoc """
-  Shopping cart steps for cucumber tests.
+  Shopping cart steps for ex_bdd tests.
   """
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I have {int} items in my cart", %{args: [item_count]} = context do

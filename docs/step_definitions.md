@@ -9,7 +9,7 @@ Step definitions should be placed in `test/features/step_definitions/` with a `.
 ```elixir
 # test/features/step_definitions/authentication_steps.exs
 defmodule AuthenticationSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   # Step definitions go here
@@ -29,7 +29,7 @@ end
 
 ## Steps with Parameters
 
-Cucumber supports several parameter types that can be used in step patterns. Parameters are accessed through pattern matching on the `args` field of the context:
+ExBdd supports several parameter types that can be used in step patterns. Parameters are accessed through pattern matching on the `args` field of the context:
 
 ### String Parameters
 
@@ -113,9 +113,9 @@ step "the following group(s) exist:", context do
   context
 end
 
-step "I have {int} cucumber(s)", %{args: [count]} = context do
-  # Matches "I have 1 cucumber" or "I have 5 cucumbers"
-  Map.put(context, :cucumber_count, count)
+step "I have {int} ex_bdd(s)", %{args: [count]} = context do
+  # Matches "I have 1 ex_bdd" or "I have 5 ex_bdds"
+  Map.put(context, :ex_bdd_count, count)
 end
 ```
 
@@ -165,12 +165,12 @@ end
 ### Custom Parameter Types
 
 Define your own parameter types in a support file (loaded before step
-definitions) with `Cucumber.ParameterTypes`:
+definitions) with `ExBdd.ParameterTypes`:
 
 ```elixir
 # test/features/support/parameter_types.exs
 defmodule MyParameterTypes do
-  use Cucumber.ParameterTypes
+  use ExBdd.ParameterTypes
 
   parameter_type :flight,
     regexp: ~r/([A-Z]{3})-([A-Z]{3})/,
@@ -197,7 +197,7 @@ matched it are reported as undefined.
 
 ## Regular Expression Patterns
 
-Steps can also be defined with a regular expression instead of a cucumber
+Steps can also be defined with a regular expression instead of a ex_bdd
 expression. The regex must match the entire step text (add your own `^`/`$`
 anchors or not — full-text matching is enforced either way). Capture groups
 arrive in `context.args` in order, always as strings — regexes do no type
@@ -282,7 +282,7 @@ Step definitions must return one of the following values (matching ExUnit's setu
 - `{:error, reason}` - Fails the step with the given reason
 - `:pending` or `{:pending, message}` - Marks the step as not yet
   implemented: the remaining steps are skipped, after hooks still run, and
-  the scenario fails with `Cucumber.PendingStepError`
+  the scenario fails with `ExBdd.PendingStepError`
 - `:skipped` or `{:skipped, reason}` - Skips the rest of the scenario
   without failing it: the remaining steps don't run, after hooks still run,
   and a one-line notice is printed. Useful when the environment can't
@@ -295,7 +295,7 @@ You can create reusable step definitions that can be shared across multiple feat
 ```elixir
 # test/features/step_definitions/common_steps.exs
 defmodule CommonSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I wait {int} seconds", %{args: [seconds]} = context do

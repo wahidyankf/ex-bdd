@@ -1,5 +1,5 @@
 defmodule ErrorReportingSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
 
   step "initial setup is complete", context do
     Map.put(context, :setup_complete, true)

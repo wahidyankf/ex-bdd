@@ -1,11 +1,11 @@
-# Cucumber for Elixir
+# ExBdd for Elixir
 
-[![Hex.pm](https://img.shields.io/hexpm/v/cucumber.svg)](https://hex.pm/packages/cucumber)
-[![Docs](https://img.shields.io/hexpm/v/cucumber.svg?color=blue&label=hexdocs)](https://hexdocs.pm/cucumber)
+[![Hex.pm](https://img.shields.io/hexpm/v/cucumber.svg)](https://hex.pm/packages/ex_bdd)
+[![Docs](https://img.shields.io/hexpm/v/cucumber.svg?color=blue&label=hexdocs)](https://hexdocs.pm/ex_bdd)
 
-A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in natural language. Cucumber for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
+A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in natural language. ExBdd for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
 
-Cucumber for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://github.com/cucumber/compatibility-kit) samples**, with documented comparison allowances. Raw emitted streams are validated against the Messages 34.2.1 schema and checked for reference and lifecycle integrity before normalized comparison. See the [compatibility boundaries](docs/compatibility.md) for exclusions, deltas, and reproducible checks.
+ExBdd for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://github.com/cucumber/compatibility-kit) samples**, with documented comparison allowances. Raw emitted streams are validated against the Messages 34.2.1 schema and checked for reference and lifecycle integrity before normalized comparison. See the [compatibility boundaries](docs/compatibility.md) for exclusions, deltas, and reproducible checks.
 
 ## Features
 
@@ -22,8 +22,8 @@ Cucumber for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https:/
 - **Async Test Execution**: Run feature tests concurrently with the `@async` tag
 - **Hooks**: Run-level (`before_all`/`after_all`), scenario, and step hooks with tag-based filtering and optional names
 - **Pending & Skipped Steps**: Halt a scenario as pending (fails) or skipped (doesn't) from any step or before-hook
-- **Retry**: Re-run flaky scenarios via `config :cucumber, retry: n` or `@retry-n` tags
-- **Attachments**: Attach screenshots, logs, and payloads to steps with `Cucumber.attach/4`
+- **Retry**: Re-run flaky scenarios via `config :ex_bdd, retry: n` or `@retry-n` tags
+- **Attachments**: Attach screenshots, logs, and payloads to steps with `ExBdd.attach/4`
 - **Cucumber Messages**: Emit the standard NDJSON message stream for cross-tool reporting
 - **Context Passing**: Share state between steps with a simple context map
 - **Enhanced Error Reporting**: Detailed error messages with clickable file:line references, step execution history, and formatted HTML output
@@ -31,25 +31,25 @@ Cucumber for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https:/
 
 ## Installation
 
-Add `cucumber` to your `mix.exs` dependencies:
+Add `ex_bdd` to your `mix.exs` dependencies:
 
 ```elixir
 def deps do
   [
-    {:cucumber, "~> 1.0", only: [:dev, :test]}
+    {:ex_bdd, "~> 1.0", only: [:dev, :test]}
   ]
 end
 ```
 
 ## Quick Start
 
-### 1. Add Cucumber to your test helper
+### 1. Add ExBdd to your test helper
 
 In your `test/test_helper.exs`:
 
 ```elixir
 ExUnit.start()
-Cucumber.compile_features!()
+ExBdd.compile_features!()
 ```
 
 ### 2. Create a Feature File
@@ -93,7 +93,7 @@ Step definitions should be placed in `test/features/step_definitions/` with a `.
 ```elixir
 # test/features/step_definitions/calculator_steps.exs
 defmodule CalculatorSteps do
-  use Cucumber.StepDefinition
+  use ExBdd.StepDefinition
   import ExUnit.Assertions
 
   step "I have entered {int} into the calculator", %{args: [value]} = context do
@@ -116,11 +116,11 @@ end
 ### 4. Run Your Tests
 
 ```bash
-# Run all tests including Cucumber
+# Run all tests including ExBdd
 mix test
 
-# Run only Cucumber tests
-mix test --only cucumber
+# Run only ExBdd tests
+mix test --only ex_bdd
 
 # Run specific feature
 mix test --only feature_basic_calculator
@@ -128,7 +128,7 @@ mix test --only feature_basic_calculator
 
 ## File Structure
 
-By default, Cucumber expects the following structure:
+By default, ExBdd expects the following structure:
 
 ```
 test/
@@ -144,7 +144,7 @@ test/
 You can customize paths in `config/test.exs`:
 
 ```elixir
-config :cucumber,
+config :ex_bdd,
   features: ["test/features/**/*.feature"],
   steps: ["test/features/step_definitions/**/*.exs"]
 ```
@@ -182,7 +182,7 @@ end
 
 ## Async Test Execution
 
-By default, Cucumber tests run synchronously. To enable concurrent execution for features that don't share state, add the `@async` tag:
+By default, ExBdd tests run synchronously. To enable concurrent execution for features that don't share state, add the `@async` tag:
 
 ```gherkin
 @async
@@ -203,12 +203,12 @@ Note: Database tests can safely run async when using Ecto's SQL sandbox in share
 
 ## Hooks
 
-Cucumber supports hooks that run before and after scenarios (plus run-level `before_all`/`after_all` and per-step hooks — see the [Hooks guide](https://hexdocs.pm/cucumber/hooks.html)). Before-scenario hooks run inside the test process, **before** background steps:
+ExBdd supports hooks that run before and after scenarios (plus run-level `before_all`/`after_all` and per-step hooks — see the [Hooks guide](https://hexdocs.pm/ex_bdd/hooks.html)). Before-scenario hooks run inside the test process, **before** background steps:
 
 ```elixir
 # test/features/support/database_hooks.exs
 defmodule DatabaseHooks do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   # Global hook - runs for all scenarios
   before_scenario context do
@@ -257,20 +257,20 @@ Execution order:
 
 ## Documentation
 
-For comprehensive documentation and guides, please visit [HexDocs](https://hexdocs.pm/cucumber).
+For comprehensive documentation and guides, please visit [HexDocs](https://hexdocs.pm/ex_bdd).
 
-- [Getting Started](https://hexdocs.pm/cucumber/getting_started.html)
-- [Feature Files](https://hexdocs.pm/cucumber/feature_files.html)
-- [Step Definitions](https://hexdocs.pm/cucumber/step_definitions.html)
-- [Hooks](https://hexdocs.pm/cucumber/hooks.html) - Run-level, scenario, and step hooks
-- [Attachments](https://hexdocs.pm/cucumber/attachments.html)
-- [Error Handling](https://hexdocs.pm/cucumber/error_handling.html)
-- [Best Practices](https://hexdocs.pm/cucumber/best_practices.html)
-- [Architecture](https://hexdocs.pm/cucumber/architecture.html)
+- [Getting Started](https://hexdocs.pm/ex_bdd/getting_started.html)
+- [Feature Files](https://hexdocs.pm/ex_bdd/feature_files.html)
+- [Step Definitions](https://hexdocs.pm/ex_bdd/step_definitions.html)
+- [Hooks](https://hexdocs.pm/ex_bdd/hooks.html) - Run-level, scenario, and step hooks
+- [Attachments](https://hexdocs.pm/ex_bdd/attachments.html)
+- [Error Handling](https://hexdocs.pm/ex_bdd/error_handling.html)
+- [Best Practices](https://hexdocs.pm/ex_bdd/best_practices.html)
+- [Architecture](https://hexdocs.pm/ex_bdd/architecture.html)
 
 ## License
 
-Cucumber for Elixir is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
+ExBdd for Elixir is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
 
 ## Contributing
 

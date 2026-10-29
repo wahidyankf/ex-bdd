@@ -1,11 +1,11 @@
 defmodule DatabaseExample do
   @moduledoc """
-  Example database support for Cucumber tests.
+  Example database support for ExBdd tests.
 
   This demonstrates how to set up Ecto sandbox for tests that need it.
   In a real application, you would replace MyApp.Repo with your actual repo module.
   """
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   # Only runs for scenarios tagged with @database
   before_scenario "@database", context do

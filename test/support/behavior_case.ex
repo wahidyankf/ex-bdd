@@ -1,6 +1,6 @@
-defmodule Cucumber.BehaviorCase do
+defmodule ExBdd.BehaviorCase do
   @moduledoc """
-  Test-case template for behavior-level tests of the Cucumber pipeline.
+  Test-case template for behavior-level tests of the ExBdd pipeline.
 
   A behavior test expresses: *this feature source, run against these step
   definition modules, produces exactly this outcome* — including failing,
@@ -8,19 +8,19 @@ defmodule Cucumber.BehaviorCase do
   `test/features/` suite.
 
   `run_feature/2` pushes the source through the real pipeline
-  (`Gherkin.Parser` → `Cucumber.Compiler` → `Code.compile_quoted`) and executes
+  (`ExBdd.Gherkin.Parser` → `ExBdd.Compiler` → `Code.compile_quoted`) and executes
   the generated module in a nested `ExUnit.run/1`, capturing its output.
 
   ## Usage
 
       defmodule MyBehaviorTest do
-        use Cucumber.BehaviorCase
+        use ExBdd.BehaviorCase
 
         defmodule Steps do
-          use Cucumber.StepDefinition
+          use ExBdd.StepDefinition
 
           step "a passing step", _context do
-            Cucumber.BehaviorCase.Collector.record(:passing_step)
+            ExBdd.BehaviorCase.Collector.record(:passing_step)
             :ok
           end
         end
@@ -56,7 +56,7 @@ defmodule Cucumber.BehaviorCase do
 
   using do
     quote do
-      import Cucumber.BehaviorCase,
+      import ExBdd.BehaviorCase,
         only: [
           run_feature: 1,
           run_feature: 2,
@@ -68,7 +68,7 @@ defmodule Cucumber.BehaviorCase do
           unique_markdown_path: 0
         ]
 
-      alias Cucumber.BehaviorCase.Collector
+      alias ExBdd.BehaviorCase.Collector
     end
   end
 
@@ -94,7 +94,7 @@ defmodule Cucumber.BehaviorCase do
     def events, do: Agent.get(__MODULE__, &Enum.reverse/1)
   end
 
-  # Tests that drive Cucumber.Runtime directly (bypassing run_feature/2)
+  # Tests that drive ExBdd.Runtime directly (bypassing run_feature/2)
   # still need the Collector running; without this, whether it exists
   # depends on which test the seed ordered first.
   setup do
@@ -107,16 +107,16 @@ defmodule Cucumber.BehaviorCase do
 
   ## Options
 
-    * `:steps` - list of modules defined with `use Cucumber.StepDefinition`
-    * `:hooks` - list of modules defined with `use Cucumber.Hooks`
+    * `:steps` - list of modules defined with `use ExBdd.StepDefinition`
+    * `:hooks` - list of modules defined with `use ExBdd.Hooks`
     * `:parameter_types` - list of modules defined with
-      `use Cucumber.ParameterTypes`
+      `use ExBdd.ParameterTypes`
     * `:file` - synthetic feature path (defaults to a unique generated path,
       which also keeps generated module names unique across runs)
     * `:files` - like `:file`, but names each source by index (for
       multi-feature runs asserting on per-feature uris)
     * `:messages` - a path enabling the Cucumber Messages sink for this run
-      (mirroring `config :cucumber, messages: path`); the NDJSON file is
+      (mirroring `config :ex_bdd, messages: path`); the NDJSON file is
       flushed when the nested run finishes
     * `:seed` - seed for the nested run (`0` runs scenarios in definition
       order — required when asserting on cross-scenario ordering, e.g.
@@ -130,7 +130,7 @@ defmodule Cucumber.BehaviorCase do
       here; ANSI colors are disabled in the nested run, so the output is
       plain text even when the outer run is on a TTY)
     * `:events` - events recorded via `Collector.record/1`, in order
-    * `:attachments` - `Cucumber.Attachment` structs recorded during the run
+    * `:attachments` - `ExBdd.Attachment` structs recorded during the run
     * `:messages` - the decoded message envelopes (only with `:messages`)
     * `:module` - the generated test module
   """
@@ -152,12 +152,12 @@ defmodule Cucumber.BehaviorCase do
     hook_modules = opts |> Keyword.get(:hooks, []) |> List.wrap()
     parameter_type_modules = opts |> Keyword.get(:parameter_types, []) |> List.wrap()
 
-    registry = Cucumber.StepRegistry.new(step_modules, parameter_type_modules)
+    registry = ExBdd.StepRegistry.new(step_modules, parameter_type_modules)
 
-    # Each run_feature call is its own isolated cucumber run: reset the
+    # Each run_feature call is its own isolated ex_bdd run: reset the
     # coordinator so run-level state (before_all/after_all) from a previous
     # behavior test can't leak in.
-    Cucumber.RunCoordinator.ensure_started()
+    ExBdd.RunCoordinator.ensure_started()
     Collector.reset()
 
     named_files = Keyword.get(opts, :files) || List.wrap(Keyword.get(opts, :file))
@@ -169,7 +169,7 @@ defmodule Cucumber.BehaviorCase do
         file = Enum.at(named_files, index) || unique_feature_path()
 
         source
-        |> Gherkin.Parser.parse(file)
+        |> ExBdd.Gherkin.Parser.parse(file)
         |> Map.put(:file, file)
         |> Map.put(:source, source)
       end)
@@ -178,7 +178,7 @@ defmodule Cucumber.BehaviorCase do
     # pickle ids threaded across features, message sink configured when a
     # path is given
     modules =
-      Cucumber.Compiler.compile_all!(
+      ExBdd.Compiler.compile_all!(
         features,
         registry,
         hook_modules,
@@ -195,7 +195,7 @@ defmodule Cucumber.BehaviorCase do
       passed: result.total - result.failures - result.skipped - result.excluded,
       output: output,
       events: Collector.events(),
-      attachments: Cucumber.RunCoordinator.attachments(),
+      attachments: ExBdd.RunCoordinator.attachments(),
       messages: read_messages(opts[:messages]),
       module: List.first(modules),
       modules: modules
@@ -216,14 +216,14 @@ defmodule Cucumber.BehaviorCase do
   @doc """
   Runs already-compiled test modules in a nested ExUnit run with neutral
   include/exclude filters, so outer-suite filters (e.g. `mix test --exclude
-  cucumber`, which would exclude every generated module via its `:cucumber`
+  ex_bdd`, which would exclude every generated module via its `:ex_bdd`
   moduletag) cannot distort the nested result. Safe to swap globally: see
   the moduledoc.
 
   Accepts a `:seed` option for the nested run (see `run_feature/2`).
 
   Returns `{result, output}`. Prefer `run_feature/2`; this is for tests
-  that drive `Cucumber.Compiler.compile_features!/1` themselves.
+  that drive `ExBdd.Compiler.compile_features!/1` themselves.
   """
   def run_isolated(modules, opts \\ []) do
     config = ExUnit.configuration()

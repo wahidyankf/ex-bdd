@@ -1,0 +1,1103 @@
+defmodule ExBdd.Gherkin.ParserTest do
+  use ExUnit.Case, async: true
+
+  alias ExBdd.Gherkin.{Background, Feature, Scenario, ScenarioOutline, Step}
+
+  describe "parse/1" do
+    test "parses a minimal feature file with one scenario and background" do
+      gherkin = """
+      Feature: User signs up for event
+
+      Background:
+        Given a logged in user
+
+      Scenario: User joins an event
+        Given an event titled \"Tech Gathering\"
+        When I visit \"/\"
+        Then I should see the event
+        When I click \"join\" on the first event
+        Then I should see \"joined event\"
+      """
+
+      expected = %Feature{
+        name: "User signs up for event",
+        description: "",
+        line: 0,
+        background: %Background{
+          line: 2,
+          steps: [
+            %Step{
+              keyword: "Given",
+              text: "a logged in user",
+              line: 3,
+              docstring: nil,
+              datatable: nil
+            }
+          ]
+        },
+        scenarios: [
+          %Scenario{
+            name: "User joins an event",
+            line: 5,
+            steps: [
+              %Step{
+                keyword: "Given",
+                text: "an event titled \"Tech Gathering\"",
+                line: 6,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "When",
+                text: "I visit \"/\"",
+                line: 7,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "Then",
+                text: "I should see the event",
+                line: 8,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "When",
+                text: "I click \"join\" on the first event",
+                line: 9,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "Then",
+                text: "I should see \"joined event\"",
+                line: 10,
+                docstring: nil,
+                datatable: nil
+              }
+            ]
+          }
+        ]
+      }
+
+      assert ExBdd.Gherkin.Parser.parse(gherkin) == expected
+    end
+
+    test "parses a feature file with multiple scenarios" do
+      gherkin = """
+      Feature: Multiple scenarios
+
+      Scenario: First scenario
+        Given something
+        When I do something
+        Then I see something
+
+      Scenario: Second scenario
+        Given another thing
+        When I do another thing
+        Then I see another thing
+      """
+
+      expected = %Feature{
+        name: "Multiple scenarios",
+        description: "",
+        line: 0,
+        background: nil,
+        scenarios: [
+          %Scenario{
+            name: "First scenario",
+            line: 2,
+            steps: [
+              %Step{keyword: "Given", text: "something", line: 3, docstring: nil, datatable: nil},
+              %Step{
+                keyword: "When",
+                text: "I do something",
+                line: 4,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "Then",
+                text: "I see something",
+                line: 5,
+                docstring: nil,
+                datatable: nil
+              }
+            ]
+          },
+          %Scenario{
+            name: "Second scenario",
+            line: 7,
+            steps: [
+              %Step{
+                keyword: "Given",
+                text: "another thing",
+                line: 8,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "When",
+                text: "I do another thing",
+                line: 9,
+                docstring: nil,
+                datatable: nil
+              },
+              %Step{
+                keyword: "Then",
+                text: "I see another thing",
+                line: 10,
+                docstring: nil,
+                datatable: nil
+              }
+            ]
+          }
+        ]
+      }
+
+      assert ExBdd.Gherkin.Parser.parse(gherkin) == expected
+    end
+  end
+
+  describe "parse/1 with Scenario Outlines" do
+    test "parses a simple scenario outline with one Examples block" do
+      gherkin = """
+      Feature: Calculator
+
+      Scenario Outline: Adding numbers
+        Given I have <a> and <b>
+        When I add them
+        Then the result is <sum>
+
+        Examples:
+          | a | b | sum |
+          | 1 | 2 | 3   |
+          | 5 | 3 | 8   |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.name == "Calculator"
+      assert length(result.scenarios) == 1
+
+      [outline] = result.scenarios
+      assert %ScenarioOutline{} = outline
+      assert outline.name == "Adding numbers"
+      assert length(outline.steps) == 3
+      assert length(outline.examples) == 1
+
+      [examples] = outline.examples
+      assert examples.name == ""
+      assert examples.table_header == ["a", "b", "sum"]
+      assert examples.table_body == [["1", "2", "3"], ["5", "3", "8"]]
+    end
+
+    test "parses scenario outline with named Examples block" do
+      gherkin = """
+      Feature: Calculator
+
+      Scenario Outline: Adding numbers
+        Given I have <a> and <b>
+        When I add them
+        Then the result is <sum>
+
+        Examples: positive numbers
+          | a | b | sum |
+          | 1 | 2 | 3   |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      [outline] = result.scenarios
+      [examples] = outline.examples
+
+      assert examples.name == "positive numbers"
+    end
+
+    test "parses scenario outline with multiple Examples blocks" do
+      gherkin = """
+      Feature: Calculator
+
+      Scenario Outline: Adding numbers
+        Given I have <a> and <b>
+        When I add them
+        Then the result is <sum>
+
+        Examples: positive
+          | a | b | sum |
+          | 1 | 2 | 3   |
+
+        Examples: negative
+          | a  | b  | sum |
+          | -1 | -2 | -3  |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      [outline] = result.scenarios
+
+      assert length(outline.examples) == 2
+      [ex1, ex2] = outline.examples
+
+      assert ex1.name == "positive"
+      assert ex1.table_body == [["1", "2", "3"]]
+
+      assert ex2.name == "negative"
+      assert ex2.table_body == [["-1", "-2", "-3"]]
+    end
+
+    test "parses scenario outline with tagged Examples blocks" do
+      gherkin = """
+      Feature: Calculator
+
+      @outline-tag
+      Scenario Outline: Adding numbers
+        Given I have <a> and <b>
+        Then the result is <sum>
+
+        @positive
+        Examples: positive
+          | a | b | sum |
+          | 1 | 2 | 3   |
+
+        @negative @slow
+        Examples: negative
+          | a  | b  | sum |
+          | -1 | -2 | -3  |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      [outline] = result.scenarios
+
+      assert outline.tags == ["outline-tag"]
+      assert length(outline.examples) == 2
+
+      [ex1, ex2] = outline.examples
+      assert ex1.tags == ["positive"]
+      assert ex2.tags == ["negative", "slow"]
+    end
+
+    test "parses feature with both scenarios and scenario outlines" do
+      gherkin = """
+      Feature: Mixed scenarios
+
+      Scenario: Regular scenario
+        Given something
+        Then something else
+
+      Scenario Outline: Outline scenario
+        Given I have <value>
+        Then I see <result>
+
+        Examples:
+          | value | result |
+          | 1     | one    |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert length(result.scenarios) == 2
+      [scenario, outline] = result.scenarios
+
+      assert %Scenario{} = scenario
+      assert scenario.name == "Regular scenario"
+
+      assert %ScenarioOutline{} = outline
+      assert outline.name == "Outline scenario"
+    end
+
+    test "parses scenario outline with docstring containing placeholder" do
+      gherkin = """
+      Feature: Templates
+
+      Scenario Outline: Greeting
+        Given a template with content
+          \"\"\"
+          Hello <name>!
+          \"\"\"
+        Then the greeting is correct
+
+        Examples:
+          | name  |
+          | Alice |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      [outline] = result.scenarios
+      [step | _] = outline.steps
+
+      assert step.docstring == "Hello <name>!"
+    end
+
+    test "parses scenario outline with datatable containing placeholder" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario Outline: User data
+        Given a user with attributes
+          | name   | <name>   |
+          | age    | <age>    |
+        Then the user is valid
+
+        Examples:
+          | name  | age |
+          | Alice | 30  |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+      [outline] = result.scenarios
+      [step | _] = outline.steps
+
+      assert step.datatable == [["name", "<name>"], ["age", "<age>"]]
+    end
+  end
+
+  describe "parse/1 edge cases" do
+    test "parses feature with description lines" do
+      gherkin = """
+      @async
+      Feature: Async Feature Example
+        This feature demonstrates running scenarios asynchronously
+        Multiple description lines are allowed
+
+      Scenario: First scenario
+        Given a step
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.name == "Async Feature Example"
+      assert result.tags == ["async"]
+      assert length(result.scenarios) == 1
+      assert hd(result.scenarios).name == "First scenario"
+    end
+
+    test "parses multiple scenario outlines with tags between them" do
+      gherkin = """
+      Feature: Multiple outlines
+
+      Scenario Outline: First outline
+        Given I have <a>
+
+        Examples:
+          | a |
+          | 1 |
+
+      @tagged
+      Scenario Outline: Second outline
+        Given I have <b>
+
+        Examples:
+          | b |
+          | 2 |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert length(result.scenarios) == 2
+      [first, second] = result.scenarios
+
+      assert first.name == "First outline"
+      assert first.tags == []
+
+      assert second.name == "Second outline"
+      assert second.tags == ["tagged"]
+    end
+
+    test "parses scenario outline with multiple tagged Examples blocks" do
+      gherkin = """
+      Feature: Tagged examples
+
+      @outline-tag
+      Scenario Outline: Tagged example
+        Given I have value <value>
+
+        @smoke
+        Examples: smoke tests
+          | value |
+          | foo   |
+
+        @regression
+        Examples: regression tests
+          | value |
+          | bar   |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert length(result.scenarios) == 1
+      [outline] = result.scenarios
+
+      assert outline.name == "Tagged example"
+      assert outline.tags == ["outline-tag"]
+      assert length(outline.examples) == 2
+
+      [smoke, regression] = outline.examples
+      assert smoke.name == "smoke tests"
+      assert smoke.tags == ["smoke"]
+      assert regression.name == "regression tests"
+      assert regression.tags == ["regression"]
+    end
+
+    test "parses feature with Windows-style \\r\\n line endings" do
+      gherkin =
+        "Feature: Windows Feature\r\n\r\nScenario: A scenario\r\n  Given a step\r\n  Then another step\r\n"
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.name == "Windows Feature"
+      assert length(result.scenarios) == 1
+      [scenario] = result.scenarios
+      assert scenario.name == "A scenario"
+      assert length(scenario.steps) == 2
+    end
+
+    test "parses feature with Unicode in feature and scenario names" do
+      gherkin = """
+      Feature: Ünïcödé Féàtûrè
+
+      Scenario: Scénàrïö with émojis and àccénts
+        Given a step
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.name == "Ünïcödé Féàtûrè"
+      [scenario] = result.scenarios
+      assert scenario.name == "Scénàrïö with émojis and àccénts"
+    end
+
+    test "parses feature with very long step text" do
+      long_text = String.duplicate("a", 500)
+
+      gherkin = """
+      Feature: Long steps
+
+      Scenario: Long step text
+        Given #{long_text}
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [scenario] = result.scenarios
+      [step] = scenario.steps
+      assert step.text == long_text
+    end
+
+    test "all test feature files parse with expected scenario counts" do
+      # This test ensures all feature files are fully parsed
+      # If parsing fails silently, this test will catch it
+      expected_counts = %{
+        "test/features/advanced_features.feature" => 2,
+        "test/features/async_example.feature" => 2,
+        "test/features/custom_parameter_types.feature" => 2,
+        "test/features/database_example.feature" => 2,
+        "test/features/descriptions.feature" => 3,
+        "test/features/error_reporting.feature" => 2,
+        "test/features/feature_level_tags.feature" => 2,
+        "test/features/global_hooks.feature" => 1,
+        "test/features/hook_execution_order.feature" => 1,
+        "test/features/markdown.feature.md" => 2,
+        "test/features/parameters.feature" => 4,
+        "test/features/regex_steps.feature" => 2,
+        "test/features/retry.feature" => 1,
+        "test/features/return_values.feature" => 4,
+        "test/features/rules.feature" => 2,
+        "test/features/scenario_outline.feature" => 2,
+        "test/features/shared_steps_integration.feature" => 2,
+        "test/features/simple.feature" => 1,
+        "test/features/tagged.feature" => 4
+      }
+
+      # Every live feature file must have an entry, so a new file can't
+      # silently skip this check.
+      assert Path.wildcard("test/features/**/*.feature{,.md}") |> Enum.sort() ==
+               expected_counts |> Map.keys() |> Enum.sort()
+
+      for {file, expected_count} <- expected_counts do
+        content = File.read!(file)
+        result = ExBdd.Gherkin.Parser.parse(content, file)
+
+        count =
+          length(result.scenarios) +
+            (result.rules |> Enum.map(&length(&1.scenarios)) |> Enum.sum())
+
+        assert count == expected_count,
+               "#{file}: expected #{expected_count} scenarios (incl. rules), got #{count}"
+      end
+    end
+  end
+
+  describe "parse/1 with comment lines" do
+    test "comment line between Background and first Scenario is skipped" do
+      gherkin = """
+      Feature: Commented
+
+        Background:
+          Given a user exists
+
+        # ===== Section Marker =====
+
+        Scenario: First
+          Given a thing
+          Then it works
+
+        Scenario: Second
+          Given another thing
+          Then it also works
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert length(result.scenarios) == 2
+      assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
+    end
+
+    test "comment line between scenarios is skipped" do
+      gherkin = """
+      Feature: Commented
+
+      Scenario: First
+        Given a thing
+
+      # divider comment
+
+      Scenario: Second
+        Given another thing
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
+    end
+
+    test "comment line between steps is skipped" do
+      gherkin = """
+      Feature: Commented
+
+      Scenario: Steps with comments
+        Given step one
+        # an explanatory comment
+        When step two
+        Then step three
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [scenario] = result.scenarios
+      assert Enum.map(scenario.steps, & &1.text) == ["step one", "step two", "step three"]
+    end
+
+    test "comment line before Feature keyword is skipped" do
+      gherkin = """
+      # top-of-file note
+      Feature: Commented
+        Scenario: x
+          Given a thing
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.name == "Commented"
+      assert length(result.scenarios) == 1
+    end
+
+    test "comment line before Examples block is skipped" do
+      gherkin = """
+      Feature: Commented Outline
+
+      Scenario Outline: With comments
+        Given I have <value>
+
+        # values to try
+        Examples:
+          | value |
+          | one   |
+          | two   |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [outline] = result.scenarios
+      [examples] = outline.examples
+      assert examples.table_body == [["one"], ["two"]]
+    end
+
+    test "comment line between a tag and Scenario: keyword is skipped" do
+      gherkin = """
+      Feature: Commented
+
+      Scenario: First
+        Given a thing
+
+      @wip
+      # comment after tag
+      Scenario: Second
+        Given another thing
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert Enum.map(result.scenarios, & &1.name) == ["First", "Second"]
+      [_first, second] = result.scenarios
+      assert second.tags == ["wip"]
+    end
+
+    test "comment line between two tags on the same scenario is skipped" do
+      gherkin = """
+      Feature: Commented
+
+      @wip
+      # between tags
+      @smoke
+      Scenario: Double-tagged
+        Given a thing
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [scenario] = result.scenarios
+      assert scenario.tags == ["wip", "smoke"]
+    end
+
+    test "raises when parser stops before consuming end of file" do
+      # Trailing junk after the last scenario should not silently disappear.
+      gherkin = """
+      Feature: F
+
+      Scenario: First
+        Given a step
+
+      this is not valid gherkin
+      """
+
+      assert_raise ExBdd.Gherkin.ParseError, ~r/line 6.*Expected a step/s, fn ->
+        ExBdd.Gherkin.Parser.parse(gherkin)
+      end
+    end
+
+    test "comment line between an Examples tag and Examples: keyword is skipped" do
+      gherkin = """
+      Feature: Commented Outline
+
+      Scenario Outline: With tagged examples
+        Given I have <value>
+
+        @smoke
+        # tagged examples
+        Examples:
+          | value |
+          | one   |
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [outline] = result.scenarios
+      [examples] = outline.examples
+      assert examples.tags == ["smoke"]
+      assert examples.table_body == [["one"]]
+    end
+  end
+
+  describe "parse/1 source metadata for Cucumber Messages" do
+    test "each tag records its own source line, parallel to tags" do
+      gherkin = """
+      @feature-tag
+      Feature: Tagged
+
+        @one
+        @two @three
+        Scenario: s
+          Given a step
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.tags == ["feature-tag"]
+      assert result.tag_lines == [0]
+
+      [scenario] = result.scenarios
+      assert scenario.tags == ["one", "two", "three"]
+      assert scenario.tag_lines == [3, 4, 4]
+    end
+
+    test "docstrings record the delimiter style used" do
+      gherkin = """
+      Feature: Docstrings
+
+        Scenario: standard
+          Given a doc string:
+            \"\"\"
+            content
+            \"\"\"
+
+        Scenario: backticks
+          Given a doc string:
+            ```
+            content
+            ```
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      [standard, backticks] = result.scenarios
+      assert hd(standard.steps).docstring_delimiter == ~s(""")
+      assert hd(backticks.steps).docstring_delimiter == "```"
+    end
+
+    test "comments are collected with their lines and raw text" do
+      gherkin = """
+      # top note
+      Feature: Commented
+
+        # scenario note
+        Scenario: s
+          Given a step
+        # trailing note
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.comments == [
+               {0, "# top note"},
+               {3, "  # scenario note"},
+               {6, "  # trailing note"}
+             ]
+    end
+
+    test "a # line inside a docstring is content, not a comment" do
+      gherkin = """
+      Feature: Docstring hash
+
+        Scenario: s
+          Given a doc string:
+            \"\"\"
+            # this is content
+            \"\"\"
+        # this is a comment
+      """
+
+      result = ExBdd.Gherkin.Parser.parse(gherkin)
+
+      assert result.comments == [{7, "  # this is a comment"}]
+
+      [scenario] = result.scenarios
+      assert hd(scenario.steps).docstring == "# this is content"
+    end
+  end
+
+  describe "line numbers in a source with leading blank lines" do
+    @leading_blanks_source """
+
+
+    @feature-tag
+    Feature: Leading blanks
+
+      @scenario-tag
+      Scenario: s
+        Given a table:
+          | a | b |
+          | 1 | 2 |
+    """
+
+    test "feature, scenario, step, tag, and datatable lines match the source text" do
+      feature = ExBdd.Gherkin.Parser.parse(@leading_blanks_source)
+
+      assert feature.line == 3
+      assert feature.tag_lines == [2]
+
+      [scenario] = feature.scenarios
+      assert scenario.line == 6
+      assert scenario.tag_lines == [5]
+
+      [step] = scenario.steps
+      assert step.line == 7
+      assert step.datatable_lines == [8, 9]
+    end
+
+    test "CRLF line endings report the same lines as LF" do
+      lf = @leading_blanks_source
+      crlf = String.replace(lf, "\n", "\r\n")
+
+      assert source_lines(ExBdd.Gherkin.Parser.parse(crlf)) == source_lines(ExBdd.Gherkin.Parser.parse(lf))
+      assert %{feature: 3, scenario: 6, steps: [7]} = source_lines(ExBdd.Gherkin.Parser.parse(crlf))
+    end
+
+    test "equivalent .feature and .feature.md sources report the same lines" do
+      gherkin = """
+
+
+      Feature: Parity
+
+      @t
+      Scenario: s
+        Given a table:
+          | a | b |
+          | 1 | 2 |
+        When another step
+      """
+
+      markdown = """
+
+
+      # Feature: Parity
+
+      `@t`
+      ## Scenario: s
+      * Given a table:
+        | a | b |
+        | 1 | 2 |
+      * When another step
+      """
+
+      from_gherkin = gherkin |> ExBdd.Gherkin.Parser.parse("parity.feature") |> source_lines()
+      from_markdown = markdown |> ExBdd.Gherkin.Parser.parse("parity.feature.md") |> source_lines()
+
+      # The feature line itself is format-specific: in Markdown with Gherkin
+      # a blank first line is the (unnamed) feature line, as in the reference.
+      assert Map.delete(from_gherkin, :feature) == Map.delete(from_markdown, :feature)
+
+      assert %{scenario: 5, scenario_tags: [4], steps: [6, 9], datatables: [[7, 8], nil]} =
+               from_gherkin
+    end
+
+    test "an unexpected-content parse error reports its true line" do
+      gherkin = """
+
+
+      Feature: Leading blanks
+
+        Scenario: s
+          Given a step
+
+        this is not valid gherkin
+      """
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert Exception.message(error) =~ "Expected a step, table row, doc string, tag"
+      assert error.line == 8
+    end
+
+    test "a ragged table row parse error reports its true line" do
+      gherkin = """
+
+
+      Feature: Leading blanks
+
+        Scenario: s
+          Given a table:
+            | a | b |
+            | 1 |
+      """
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert Exception.message(error) =~ "2 cells to match the first row, got 1"
+      assert error.line == 8
+    end
+  end
+
+  defp source_lines(feature) do
+    [scenario] = feature.scenarios
+
+    %{
+      feature: feature.line,
+      feature_tags: feature.tag_lines,
+      scenario: scenario.line,
+      scenario_tags: scenario.tag_lines,
+      steps: Enum.map(scenario.steps, & &1.line),
+      datatables: Enum.map(scenario.steps, & &1.datatable_lines)
+    }
+  end
+
+  describe "parse/1 empty data table cells" do
+    test "keeps an empty cell in its column" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario: Sparse rows
+        Given these products
+          | name    | flavor | size  |
+          | Doritos |        | 9 oz  |
+          |         | Nacho  | 12 oz |
+          | Lay's   | Plain  |       |
+      """
+
+      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [step] = scenario.steps
+
+      assert step.datatable == [
+               ["name", "flavor", "size"],
+               ["Doritos", "", "9 oz"],
+               ["", "Nacho", "12 oz"],
+               ["Lay's", "Plain", ""]
+             ]
+    end
+
+    test "keeps a row whose only cell is empty" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario: One column
+        Given these notes
+          | note |
+          |      |
+      """
+
+      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+
+      assert hd(scenario.steps).datatable == [["note"], [""]]
+    end
+
+    test "keeps empty cells in an Examples table" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario Outline: Optional flavor
+        Given a product named "<name>" with flavor "<flavor>"
+
+        Examples:
+          | name    | flavor |
+          | Doritos |        |
+      """
+
+      [outline] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+      [examples] = outline.examples
+
+      assert examples.table_body == [["Doritos", ""]]
+    end
+
+    test "unescapes \\|, \\\\ and \\n in cells and keeps other backslashes" do
+      gherkin = ~S"""
+      Feature: Tables
+
+      Scenario: Escapes
+        Given these cells
+          | a \| b | c\\d | e\nf | g\h | \n |
+      """
+
+      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+
+      assert hd(scenario.steps).datatable == [["a | b", "c\\d", "e\nf", "g\\h", "\n"]]
+    end
+
+    test "drops text after the last pipe of an unterminated row" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario: Unterminated
+        Given these notes
+          | note | stray
+      """
+
+      [scenario] = ExBdd.Gherkin.Parser.parse(gherkin).scenarios
+
+      assert hd(scenario.steps).datatable == [["note"]]
+    end
+  end
+
+  describe "parse/1 inconsistent table cell counts" do
+    test "a data table row with fewer cells than the first row raises at that row" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario: Ragged
+        Given these products
+          | name    | flavor | size |
+          | Doritos | Nacho  |
+      """
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert error.line == 6
+      assert error.column == 5
+      assert error.rest == "| Doritos | Nacho  |"
+      assert Exception.message(error) =~ "a table row with 3 cells to match the first row, got 2"
+    end
+
+    test "a data table row with more cells than the first row raises" do
+      gherkin = """
+      Feature: Tables
+
+      Scenario: Ragged
+        Given these notes
+          | note |
+          | a    | b |
+      """
+
+      assert_raise ExBdd.Gherkin.ParseError, ~r/1 cell to match the first row, got 2/, fn ->
+        ExBdd.Gherkin.Parser.parse(gherkin)
+      end
+    end
+
+    test "an Examples row that does not match the header raises" do
+      gherkin = """
+      Feature: Tables
+
+      Rule: Flavors
+        Scenario Outline: Optional flavor
+          Given a product named "<name>" with flavor "<flavor>"
+
+          Examples:
+            | name    | flavor |
+            | Doritos |
+      """
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert error.line == 9
+      assert Exception.message(error) =~ "2 cells to match the first row, got 1"
+    end
+  end
+
+  describe "parse/1 error messages" do
+    test "a line the parser cannot read says what it expected there" do
+      gherkin = "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n"
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert Exception.message(error) =~
+               "Expected a step, table row, doc string, tag, comment or keyword line"
+
+      refute Exception.message(error) =~ "Unexpected"
+    end
+
+    test "the column is where the unreadable line's content starts" do
+      gherkin = "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n"
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert {error.line, error.column} == {5, 3}
+    end
+
+    test "parse/2 names the file, as path:line:column" do
+      gherkin = "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n"
+
+      error =
+        assert_raise ExBdd.Gherkin.ParseError, fn ->
+          ExBdd.Gherkin.Parser.parse(gherkin, "test/features/broken.feature")
+        end
+
+      assert error.file == "test/features/broken.feature"
+
+      assert Exception.message(error) =~
+               "Gherkin parse error at test/features/broken.feature:5:3:"
+    end
+
+    test "the snippet is the unreadable line alone" do
+      gherkin =
+        "Feature: Broken\n\nScenario: s\n  Given a step\n  Invalid line here\n  Given more\n"
+
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse(gherkin) end
+
+      assert error.rest == "Invalid line here"
+    end
+
+    test "a file that is not a feature says so once, at column 1" do
+      error = assert_raise ExBdd.Gherkin.ParseError, fn -> ExBdd.Gherkin.Parser.parse("Not a feature\n") end
+
+      assert {error.line, error.column} == {1, 1}
+      assert Exception.message(error) =~ "Expected feature"
+      refute Exception.message(error) =~ ~r/expected expected/i
+    end
+  end
+end

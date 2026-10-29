@@ -1,6 +1,6 @@
 # Hooks
 
-Cucumber for Elixir provides hooks that allow you to run code around the whole run (`before_all`/`after_all`), around each scenario (`before_scenario`/`after_scenario`), and around each step (`before_step`/`after_step`). This is useful for setup and teardown operations like database transactions, authentication, or any other cross-cutting concerns.
+ExBdd for Elixir provides hooks that allow you to run code around the whole run (`before_all`/`after_all`), around each scenario (`before_scenario`/`after_scenario`), and around each step (`before_step`/`after_step`). This is useful for setup and teardown operations like database transactions, authentication, or any other cross-cutting concerns.
 
 ## Overview
 
@@ -8,12 +8,12 @@ Hooks are defined in support files placed in `test/features/support/` and are au
 
 ## Defining Hooks
 
-To define hooks, create a module that uses `Cucumber.Hooks`:
+To define hooks, create a module that uses `ExBdd.Hooks`:
 
 ```elixir
 # test/features/support/database_support.exs
 defmodule DatabaseSupport do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   # Global hook - runs before every scenario
   before_scenario context do
@@ -85,8 +85,8 @@ end
 scenario that executes. They run in that scenario's test process; a run
 coordinator guarantees they run only once, and any `@async` features that
 reach them concurrently wait for the result. Because they run in a test
-process, they can attach (`Cucumber.attach/4`, `Cucumber.log/2`,
-`Cucumber.link/2`) like any other hook. Their accumulated context map is
+process, they can attach (`ExBdd.attach/4`, `ExBdd.log/2`,
+`ExBdd.link/2`) like any other hook. Their accumulated context map is
 merged into every scenario's context. If a `before_all` hook fails, the
 remaining `before_all` hooks still run (to set up as much as possible for
 cleanup), but every scenario in the run fails with the original error.
@@ -116,7 +116,7 @@ end
 
 `before_step` and `after_step` hooks bracket every step of matching
 scenarios, including background steps. They receive the step's prepared
-context — `:step` (the `Gherkin.Step` struct), `:args`, and any
+context — `:step` (the `ExBdd.Gherkin.Step` struct), `:args`, and any
 `:datatable`/`:docstring`. `after_step` additionally sees `:step_status`
 (`:passed`, `:failed`, `:pending`, or `:skipped`) and runs for failing
 steps too.
@@ -167,7 +167,7 @@ Hooks support the same return values as step definitions:
   scenario without failing it: remaining before hooks and all steps are
   skipped, after hooks still run
 - `:pending` or `{:pending, message}` (before hooks only) - Like `:skipped`,
-  but the scenario fails with `Cucumber.PendingStepError`
+  but the scenario fails with `ExBdd.PendingStepError`
 
 Return values from after hooks are ignored, so an after hook returning
 `:skipped` only marks itself — subsequent after hooks still run.
@@ -216,7 +216,7 @@ The context passed to hooks includes:
 
 ```elixir
 defmodule DatabaseSupport do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   before_scenario "@database", context do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(MyApp.Repo)
@@ -234,7 +234,7 @@ end
 
 ```elixir
 defmodule AuthSupport do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   before_scenario "@authenticated", context do
     user = MyApp.Factory.insert(:user)
@@ -252,7 +252,7 @@ end
 
 ```elixir
 defmodule PerformanceSupport do
-  use Cucumber.Hooks
+  use ExBdd.Hooks
 
   before_scenario "@performance", context do
     start_time = System.monotonic_time()
@@ -275,8 +275,8 @@ By default, support files are loaded from `test/features/support/**/*.exs`. You 
 
 ```elixir
 # config/test.exs
-config :cucumber,
-  support: ["test/support/**/*.exs", "test/cucumber_support/**/*.exs"]
+config :ex_bdd,
+  support: ["test/support/**/*.exs", "test/ex_bdd_support/**/*.exs"]
 ```
 
 ## Best Practices
@@ -292,7 +292,7 @@ config :cucumber,
 ### Hooks not running
 
 1. Ensure your support files are in the correct directory
-2. Verify the module uses `Cucumber.Hooks`
+2. Verify the module uses `ExBdd.Hooks`
 3. Check that tags match exactly (including the @ symbol)
 4. Confirm the file has a `.exs` extension
 

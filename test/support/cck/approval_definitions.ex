@@ -1,8 +1,8 @@
-defmodule Cucumber.CckApproval.Definitions do
+defmodule ExBdd.CckApproval.Definitions do
   @moduledoc """
   Elixir translations of the CCK samples' reference TypeScript step
   definitions, hooks, and parameter types (`<sample>.ts` in the kit),
-  used by the approval tests in `test/cucumber/cck_approval_test.exs`.
+  used by the approval tests in `test/ex_bdd/cck_approval_test.exs`.
 
   Each nested module mirrors one sample's definition file as closely as
   the two languages allow: same patterns, same behavior, same failure
@@ -12,7 +12,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Minimal do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "I have {int} cukes in my belly", _context do
       :ok
@@ -21,7 +21,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Cdata do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "I have {int} <![CDATA[cukes]]> in my belly", _context do
       :ok
@@ -30,7 +30,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule DataTables do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "the following table is transposed:", context do
@@ -50,7 +50,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule DataTablesWithExpression do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "a {string} with a table", %{args: [string]} = context do
@@ -62,7 +62,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule DocStringsWithExpression do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "a {string} with a doc string:", %{args: [string]} = context do
@@ -74,7 +74,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Backgrounds do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "an order for {string}", _context do
       :ok
@@ -91,7 +91,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule DocStrings do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a doc string:", _context do
       :ok
@@ -100,7 +100,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ExamplesTables do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "there are {int} cucumbers", %{args: [count]} do
@@ -128,7 +128,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule UnusedSteps do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step that is used", _context do
       :ok
@@ -141,7 +141,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule StackTraces do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step throws an exception", _context do
       raise "BOOM"
@@ -150,7 +150,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Undefined do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "an implemented step", _context do
       :ok
@@ -163,7 +163,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Ambiguous do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step ~r/^a (.*?) with (.*?)$/, _context do
       # first one
@@ -178,7 +178,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Pending do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "an implemented non-pending step", _context do
       :ok
@@ -195,7 +195,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Skipped do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step that does not skip", _context do
       :ok
@@ -212,7 +212,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule AllStatuses do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step ~r/^a step$/, _context do
       :ok
@@ -241,7 +241,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Hooks do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step passes", _context do
       :ok
@@ -254,7 +254,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario _context do
       :ok
@@ -267,7 +267,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule PassingStep do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step passes", _context do
       :ok
@@ -276,7 +276,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksConditionalHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario "@passing-hook", _context do
       :ok
@@ -297,7 +297,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksNamedHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario _context, name: "A named before hook" do
       :ok
@@ -310,7 +310,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksSkipped do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a normal step", _context do
       :ok
@@ -327,7 +327,7 @@ defmodule Cucumber.CckApproval.Definitions do
   # preserving the reference's registration order.
   defmodule HooksSkippedHooks1 do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario _context do
       :ok
@@ -340,7 +340,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksSkippedHooks2 do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario "@skip-before", _context do
       :skipped
@@ -353,7 +353,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule HooksSkippedHooks3 do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario _context do
       :ok
@@ -366,7 +366,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule SkippedFailingHook do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step that skips", _context do
       :skipped
@@ -375,7 +375,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule SkippedFailingHookHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     after_scenario _context do
       raise "whoops"
@@ -384,7 +384,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule GlobalHooks do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step passes", _context do
       :ok
@@ -397,7 +397,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule GlobalHooksHooks1 do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all _context do
       :ok
@@ -410,7 +410,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule GlobalHooksHooks2 do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all _context do
       :ok
@@ -423,7 +423,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule GlobalHooksErrorSteps do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step passes", _context do
       :ok
@@ -432,7 +432,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ExplodingBeforeAllHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all _context do
       raise "BeforeAll hook went wrong"
@@ -445,7 +445,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule TrailingBeforeAllHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all _context do
       :ok
@@ -454,7 +454,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ExplodingAfterAllHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all _context do
       :ok
@@ -467,7 +467,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule TrailingAfterAllHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     after_all _context do
       :ok
@@ -476,7 +476,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ParameterTypesSteps do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "{flight} has been delayed", %{args: [flight]} do
@@ -488,7 +488,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ParameterTypesTypes do
     @moduledoc false
-    use Cucumber.ParameterTypes
+    use ExBdd.ParameterTypes
 
     parameter_type(:flight,
       regexp: ~r/([A-Z]{3})-([A-Z]{3})/,
@@ -498,7 +498,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule RegularExpression do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step ~r/^a (.*?)(?: and a (.*?))?(?: and a (.*?))?$/, _context do
       :ok
@@ -507,7 +507,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Retry do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a step that always passes", _context do
       :ok
@@ -530,7 +530,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule RetryAmbiguous do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     # The reference registers the same cucumber expression twice; this
     # implementation rejects exact duplicates at discovery, so the
@@ -546,7 +546,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule RetryPending do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a pending step", _context do
       :pending
@@ -555,7 +555,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule Rules do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "the customer has {int} cents", %{args: [money]} do
@@ -591,7 +591,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule MultipleFeatures do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "an order for {string}", _context do
       :ok
@@ -600,7 +600,7 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ExamplesTablesUndefined do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "there are {int} cucumbers", %{args: [count]} do
@@ -619,61 +619,61 @@ defmodule Cucumber.CckApproval.Definitions do
 
   defmodule ExamplesTablesAttachment do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "a JPEG image is attached", context do
       jpeg = File.read!("test/fixtures/cck/examples-tables-attachment/cucumber.jpeg")
-      Cucumber.attach(context, {:bytes, jpeg}, "image/jpeg")
+      ExBdd.attach(context, {:bytes, jpeg}, "image/jpeg")
     end
 
     step "a PNG image is attached", context do
       png = File.read!("test/fixtures/cck/examples-tables-attachment/cucumber.png")
-      Cucumber.attach(context, {:bytes, png}, "image/png")
+      ExBdd.attach(context, {:bytes, png}, "image/png")
     end
   end
 
   defmodule AttachingScenarioHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_scenario context do
       svg = File.read!("test/fixtures/cck/hooks-attachment/cucumber.svg")
-      Cucumber.attach(context, {:bytes, svg}, "image/svg+xml")
+      ExBdd.attach(context, {:bytes, svg}, "image/svg+xml")
     end
 
     after_scenario context do
       svg = File.read!("test/fixtures/cck/hooks-attachment/cucumber.svg")
-      Cucumber.attach(context, {:bytes, svg}, "image/svg+xml")
+      ExBdd.attach(context, {:bytes, svg}, "image/svg+xml")
     end
   end
 
   defmodule AttachingRunHooks do
     @moduledoc false
-    use Cucumber.Hooks
+    use ExBdd.Hooks
 
     before_all context do
-      Cucumber.attach(context, "Attachment from BeforeAll hook", "text/plain")
+      ExBdd.attach(context, "Attachment from BeforeAll hook", "text/plain")
     end
 
     after_all context do
-      Cucumber.attach(context, "Attachment from AfterAll hook", "text/plain")
+      ExBdd.attach(context, "Attachment from AfterAll hook", "text/plain")
     end
   end
 
   defmodule Attachments do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
 
     step "the string {string} is attached as {string}", %{args: [text, media_type]} = context do
-      Cucumber.attach(context, text, media_type)
+      ExBdd.attach(context, text, media_type)
     end
 
     step "the string {string} is logged", %{args: [text]} = context do
-      Cucumber.log(context, text)
+      ExBdd.log(context, text)
     end
 
     step "text with ANSI escapes is logged", context do
-      Cucumber.log(
+      ExBdd.log(
         context,
         "This displays a " <>
           "\e[31mr\e[0m\e[91ma\e[0m\e[33mi\e[0m\e[32mn\e[0m\e[34mb\e[0m\e[95mo\e[0m\e[35mw\e[0m"
@@ -681,34 +681,34 @@ defmodule Cucumber.CckApproval.Definitions do
     end
 
     step "the following string is attached as {string}:", %{args: [media_type]} = context do
-      Cucumber.attach(context, context.docstring, media_type)
+      ExBdd.attach(context, context.docstring, media_type)
     end
 
     step "an array with {int} bytes is attached as {string}",
          %{args: [size, media_type]} = context do
       bytes = :binary.list_to_bin(Enum.to_list(0..(size - 1)))
-      Cucumber.attach(context, {:bytes, bytes}, media_type)
+      ExBdd.attach(context, {:bytes, bytes}, media_type)
     end
 
     step "a PDF document is attached and renamed", context do
       pdf = File.read!("test/fixtures/cck/attachments/document.pdf")
-      Cucumber.attach(context, {:bytes, pdf}, "application/pdf", filename: "renamed.pdf")
+      ExBdd.attach(context, {:bytes, pdf}, "application/pdf", filename: "renamed.pdf")
     end
 
     step "a link to {string} is attached", %{args: [uri]} = context do
-      Cucumber.link(context, uri)
+      ExBdd.link(context, uri)
     end
 
     step "the string {string} is attached as {string} before a failure",
          %{args: [text, media_type]} = context do
-      Cucumber.attach(context, text, media_type)
+      ExBdd.attach(context, text, media_type)
       raise "whoops"
     end
   end
 
   defmodule Markdown do
     @moduledoc false
-    use Cucumber.StepDefinition
+    use ExBdd.StepDefinition
     import ExUnit.Assertions
 
     step "some TypeScript code:", context do
@@ -724,7 +724,7 @@ defmodule Cucumber.CckApproval.Definitions do
     step "we use a data table and attach something and then {word}",
          %{args: [word]} = context do
       assert context.datatable
-      context = Cucumber.log(context, "We are logging some plain text (#{word})")
+      context = ExBdd.log(context, "We are logging some plain text (#{word})")
 
       if word == "fail" do
         raise "You asked me to fail"

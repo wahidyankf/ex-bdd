@@ -1,6 +1,6 @@
-defmodule Cucumber.CckApproval do
+defmodule ExBdd.CckApproval do
   @moduledoc """
-  Normalized comparison of Cucumber Messages streams against the Cucumber
+  Normalized comparison of Cucumber Messages streams against the ExBdd
   Compatibility Kit's reference NDJSON.
 
   The CCK ships a reference `.ndjson` for every sample, produced by
@@ -26,7 +26,7 @@ defmodule Cucumber.CckApproval do
     * `sourceReference` — step definitions and hooks live in `.exs`
       modules, not the reference's TypeScript files
     * `stepMatchArgumentsLists` — not emitted (documented delta in
-      `Cucumber.Messages`)
+      `ExBdd.Messages`)
     * `message`, `exception` — failure text is implementation-specific
       (Elixir exceptions vs. JavaScript stack traces)
     * `column` — the Gherkin parser tracks lines, not columns
@@ -80,8 +80,8 @@ defmodule Cucumber.CckApproval do
   sequences when the streams have different shapes).
   """
   def assert_equivalent(actual, reference, opts \\ []) do
-    Cucumber.CckStream.assert_valid(actual)
-    Cucumber.CckStream.assert_valid(reference)
+    ExBdd.CckStream.assert_valid(actual)
+    ExBdd.CckStream.assert_valid(reference)
 
     actual = normalize(actual, opts)
     reference = normalize(reference, opts)
