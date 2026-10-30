@@ -302,4 +302,5 @@ ExBdd for Elixir is licensed under the MIT License. See [LICENSE](LICENSE) for t
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+External contributions are currently closed while the engineering patterns stabilize. Forks remain welcome under the MIT
+license.
