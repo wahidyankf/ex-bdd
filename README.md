@@ -1,15 +1,23 @@
 # ExBdd for Elixir
 
-A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in natural language. ExBdd for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
+A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in
+natural language. ExBdd for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to
+be written in plain language while being executed as code.
 
-ExBdd for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://github.com/cucumber/compatibility-kit) samples**, with documented comparison allowances. Raw emitted streams are validated against the Messages 34.2.1 schema and checked for reference and lifecycle integrity before normalized comparison. See the [compatibility boundaries](docs/compatibility.md) for exclusions, deltas, and reproducible checks.
+ExBdd for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://github.com/cucumber/compatibility-kit)
+samples**, with documented comparison allowances. Raw emitted streams are validated against the Messages 34.2.1 schema
+and checked for reference and lifecycle integrity before normalized comparison. See the
+[compatibility boundaries](docs/compatibility.md) for exclusions, deltas, and reproducible checks.
 
 ## Features
 
 - **Auto-discovery**: Automatically finds and runs feature files and step definitions
-- **Gherkin Support**: Write tests in familiar Given/When/Then format, including `Rule:` groupings with their own backgrounds and tags
-- **Markdown Feature Files**: Write features as Markdown documents (`.feature.md`) with prose alongside the executable Gherkin
-- **Parameter Typing**: Define step patterns with typed parameters (`{string}`, `{int}`, `{float}`, `{word}`, `{atom}`), optional parameters (`{int?}`), optional text (`(s)`), alternation (`a/b`), and your own custom parameter types
+- **Gherkin Support**: Write tests in familiar Given/When/Then format, including `Rule:` groupings with their own
+  backgrounds and tags
+- **Markdown Feature Files**: Write features as Markdown documents (`.feature.md`) with prose alongside the executable
+  Gherkin
+- **Parameter Typing**: Define step patterns with typed parameters (`{string}`, `{int}`, `{float}`, `{word}`, `{atom}`),
+  optional parameters (`{int?}`), optional text (`(s)`), alternation (`a/b`), and your own custom parameter types
 - **Regex Steps**: Match steps with regular expressions when a cucumber expression won't cut it
 - **Data Tables**: Pass structured data to your steps
 - **DocStrings**: Include multi-line text blocks in your steps, with optional media types
@@ -23,7 +31,8 @@ ExBdd for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://gi
 - **Attachments**: Attach screenshots, logs, and payloads to steps with `ExBdd.attach/4`
 - **Cucumber Messages**: Emit the standard NDJSON message stream for cross-tool reporting
 - **Context Passing**: Share state between steps with a simple context map
-- **Enhanced Error Reporting**: Detailed error messages with clickable file:line references, step execution history, and formatted HTML output
+- **Enhanced Error Reporting**: Detailed error messages with clickable file:line references, step execution history, and
+  formatted HTML output
 - **ExUnit Integration**: Seamlessly integrates with Elixir's built-in test framework
 
 ## Installation
@@ -64,11 +73,10 @@ Scenario: Adding two numbers
   Then the result should be 120 on the screen
 ```
 
-Features can also be written as Markdown documents with a `.feature.md`
-extension ([Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md)):
-headings carry the Gherkin keywords, steps are bullet-list items, tables are
-indented Markdown tables, docstrings are fenced code blocks, tags are inline
-code spans (`` `@wip` ``), and everything else is prose:
+Features can also be written as Markdown documents with a `.feature.md` extension
+([Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md)): headings carry the
+Gherkin keywords, steps are bullet-list items, tables are indented Markdown tables, docstrings are fenced code blocks,
+tags are inline code spans (`` `@wip` ``), and everything else is prose:
 
 ```markdown
 # Feature: Basic Calculator
@@ -157,6 +165,7 @@ config :ex_bdd,
 ## Working with Data Tables
 
 In your feature file:
+
 ```gherkin
 Given I have the following items in my cart:
   | Product Name    | Quantity | Price  |
@@ -165,6 +174,7 @@ Given I have the following items in my cart:
 ```
 
 In your step definitions:
+
 ```elixir
 step "I have the following items in my cart:", context do
   # Access the datatable
@@ -187,7 +197,8 @@ end
 
 ## Async Test Execution
 
-By default, ExBdd tests run synchronously. To enable concurrent execution for features that don't share state, add the `@async` tag:
+By default, ExBdd tests run synchronously. To enable concurrent execution for features that don't share state, add the
+`@async` tag:
 
 ```gherkin
 @async
@@ -199,7 +210,9 @@ Scenario: Concurrent scenario
   Then expect a result
 ```
 
-Features marked with `@async` will run concurrently with other async tests, improving test suite performance. Only use this tag for features that:
+Features marked with `@async` will run concurrently with other async tests, improving test suite performance. Only use
+this tag for features that:
+
 - Don't share state with other tests
 - Don't rely on test execution order
 - Are truly independent
@@ -208,7 +221,9 @@ Note: Database tests can safely run async when using Ecto's SQL sandbox in share
 
 ## Hooks
 
-ExBdd supports hooks that run before and after scenarios (plus run-level `before_all`/`after_all` and per-step hooks — see the [Hooks guide](https://hexdocs.pm/ex_bdd/hooks.html)). Before-scenario hooks run inside the test process, **before** background steps:
+ExBdd supports hooks that run before and after scenarios (plus run-level `before_all`/`after_all` and per-step hooks —
+see the [Hooks guide](https://hexdocs.pm/ex_bdd/hooks.html)). Before-scenario hooks run inside the test process,
+**before** background steps:
 
 ```elixir
 # test/features/support/database_hooks.exs
@@ -255,6 +270,7 @@ Feature: User Management
 ```
 
 Execution order:
+
 1. All matching before hooks run (global + feature tags + scenario tags), in definition order
 2. Background steps execute
 3. Scenario steps execute
@@ -264,14 +280,21 @@ Execution order:
 
 For comprehensive documentation and guides, please visit [HexDocs](https://hexdocs.pm/ex_bdd).
 
-- [Getting Started](https://hexdocs.pm/ex_bdd/getting_started.html)
-- [Feature Files](https://hexdocs.pm/ex_bdd/feature_files.html)
-- [Step Definitions](https://hexdocs.pm/ex_bdd/step_definitions.html)
+- [Getting Started](https://hexdocs.pm/ex_bdd/getting-started.html)
+- [Feature Files](https://hexdocs.pm/ex_bdd/feature-files.html)
+- [Step Definitions](https://hexdocs.pm/ex_bdd/step-definitions.html)
 - [Hooks](https://hexdocs.pm/ex_bdd/hooks.html) - Run-level, scenario, and step hooks
 - [Attachments](https://hexdocs.pm/ex_bdd/attachments.html)
-- [Error Handling](https://hexdocs.pm/ex_bdd/error_handling.html)
-- [Best Practices](https://hexdocs.pm/ex_bdd/best_practices.html)
+- [Error Handling](https://hexdocs.pm/ex_bdd/error-handling.html)
+- [Best Practices](https://hexdocs.pm/ex_bdd/best-practices.html)
 - [Architecture](https://hexdocs.pm/ex_bdd/architecture.html)
+
+## Related repositories
+
+ExBdd for Elixir is one of eight **`ose-projects`** repositories, with `hippo`, `ose-public`, `rhino`, `beaver-nest`,
+`ose-rules`, `py-typekit`, and [`ose-private`](https://github.com/wahidyankf/ose-private) (Private), and remains usable
+on its own. The label is navigation only, not product coupling: each is versioned and released on its own. See
+[project context](docs/README.md#project-context) for each one's link and relationship.
 
 ## License
 

@@ -71,15 +71,15 @@ defmodule ExBdd.MixProject do
 
   defp docs do
     [
-      main: "getting_started",
+      main: "getting-started",
       extras: [
-        "docs/getting_started.md",
-        "docs/feature_files.md",
-        "docs/step_definitions.md",
+        "docs/getting-started.md",
+        "docs/feature-files.md",
+        "docs/step-definitions.md",
         "docs/hooks.md",
         "docs/attachments.md",
-        "docs/error_handling.md",
-        "docs/best_practices.md",
+        "docs/error-handling.md",
+        "docs/best-practices.md",
         "docs/architecture.md",
         "docs/compatibility.md"
       ],

@@ -25,4 +25,7 @@ ex_bdd-*.tar
 # Transient local worktrees (see extract-ex-bdd merge).
 /worktrees/
 
+# Repository tooling (Prettier, markdownlint-cli2, husky) installs here and is never committed.
+/node_modules/
+
 **/.claude/settings.local.json

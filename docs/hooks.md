@@ -1,10 +1,13 @@
 # Hooks
 
-ExBdd for Elixir provides hooks that allow you to run code around the whole run (`before_all`/`after_all`), around each scenario (`before_scenario`/`after_scenario`), and around each step (`before_step`/`after_step`). This is useful for setup and teardown operations like database transactions, authentication, or any other cross-cutting concerns.
+ExBdd for Elixir provides hooks that allow you to run code around the whole run (`before_all`/`after_all`), around each
+scenario (`before_scenario`/`after_scenario`), and around each step (`before_step`/`after_step`). This is useful for
+setup and teardown operations like database transactions, authentication, or any other cross-cutting concerns.
 
 ## Overview
 
-Hooks are defined in support files placed in `test/features/support/` and are automatically discovered and executed at the appropriate times during test execution.
+Hooks are defined in support files placed in `test/features/support/` and are automatically discovered and executed at
+the appropriate times during test execution.
 
 ## Defining Hooks
 
@@ -81,22 +84,17 @@ end
 
 ### Run-Level Hooks (BeforeAll/AfterAll)
 
-`before_all` hooks run lazily, exactly once per test run, before the first
-scenario that executes. They run in that scenario's test process; a run
-coordinator guarantees they run only once, and any `@async` features that
-reach them concurrently wait for the result. Because they run in a test
-process, they can attach (`ExBdd.attach/4`, `ExBdd.log/2`,
-`ExBdd.link/2`) like any other hook. Their accumulated context map is
-merged into every scenario's context. If a `before_all` hook fails, the
-remaining `before_all` hooks still run (to set up as much as possible for
-cleanup), but every scenario in the run fails with the original error.
+`before_all` hooks run lazily, exactly once per test run, before the first scenario that executes. They run in that
+scenario's test process; a run coordinator guarantees they run only once, and any `@async` features that reach them
+concurrently wait for the result. Because they run in a test process, they can attach (`ExBdd.attach/4`, `ExBdd.log/2`,
+`ExBdd.link/2`) like any other hook. Their accumulated context map is merged into every scenario's context. If a
+`before_all` hook fails, the remaining `before_all` hooks still run (to set up as much as possible for cleanup), but
+every scenario in the run fails with the original error.
 
-`after_all` hooks run once after the whole suite, in reverse definition
-order, receiving the `before_all` context with the ExUnit suite summary
-merged under `:suite_result`. A failing `after_all` hook fails the run; the
-remaining `after_all` hooks still run. `after_all` hooks can attach too; with
-Cucumber Messages output enabled, attachments from either run-level hook are
-emitted against that hook's `testRunHookStarted`.
+`after_all` hooks run once after the whole suite, in reverse definition order, receiving the `before_all` context with
+the ExUnit suite summary merged under `:suite_result`. A failing `after_all` hook fails the run; the remaining
+`after_all` hooks still run. `after_all` hooks can attach too; with Cucumber Messages output enabled, attachments from
+either run-level hook are emitted against that hook's `testRunHookStarted`.
 
 Run-level hooks cannot be tagged (they don't belong to any scenario):
 
@@ -114,17 +112,14 @@ end
 
 ### Step Hooks
 
-`before_step` and `after_step` hooks bracket every step of matching
-scenarios, including background steps. They receive the step's prepared
-context — `:step` (the `ExBdd.Gherkin.Step` struct), `:args`, and any
-`:datatable`/`:docstring`. `after_step` additionally sees `:step_status`
-(`:passed`, `:failed`, `:pending`, or `:skipped`) and runs for failing
+`before_step` and `after_step` hooks bracket every step of matching scenarios, including background steps. They receive
+the step's prepared context — `:step` (the `ExBdd.Gherkin.Step` struct), `:args`, and any `:datatable`/`:docstring`.
+`after_step` additionally sees `:step_status` (`:passed`, `:failed`, `:pending`, or `:skipped`) and runs for failing
 steps too.
 
-A `{:error, reason}` from a `before_step` hook fails the scenario without
-running the step body; `:skipped`/`:pending` signals from `before_step`
-halt the scenario just like the step itself returning them. `after_step`
-return values are ignored.
+A `{:error, reason}` from a `before_step` hook fails the scenario without running the step body; `:skipped`/`:pending`
+signals from `before_step` halt the scenario just like the step itself returning them. `after_step` return values are
+ignored.
 
 ```elixir
 before_step "@traced", context do
@@ -140,9 +135,8 @@ end
 
 ### Named Hooks
 
-Any hook can be given a `name:`, which appears in failure output. Names
-also lift the one-hook-per-kind restriction, so a module can define any
-number of distinctly-named hooks of the same kind:
+Any hook can be given a `name:`, which appears in failure output. Names also lift the one-hook-per-kind restriction, so
+a module can define any number of distinctly-named hooks of the same kind:
 
 ```elixir
 before_scenario context, name: "prepare database" do
@@ -161,16 +155,14 @@ Hooks support the same return values as step definitions:
 - `:ok` - Keeps the context unchanged
 - `{:ok, map}` - Merges the map into the context
 - `%{} = map` - Merges the map into the context
-- `{:error, reason}` - Fails the scenario before it starts (steps and after
-  hooks don't run)
-- `:skipped` or `{:skipped, reason}` (before hooks only) - Skips the whole
-  scenario without failing it: remaining before hooks and all steps are
-  skipped, after hooks still run
-- `:pending` or `{:pending, message}` (before hooks only) - Like `:skipped`,
-  but the scenario fails with `ExBdd.PendingStepError`
+- `{:error, reason}` - Fails the scenario before it starts (steps and after hooks don't run)
+- `:skipped` or `{:skipped, reason}` (before hooks only) - Skips the whole scenario without failing it: remaining before
+  hooks and all steps are skipped, after hooks still run
+- `:pending` or `{:pending, message}` (before hooks only) - Like `:skipped`, but the scenario fails with
+  `ExBdd.PendingStepError`
 
-Return values from after hooks are ignored, so an after hook returning
-`:skipped` only marks itself — subsequent after hooks still run.
+Return values from after hooks are ignored, so an after hook returning `:skipped` only marks itself — subsequent after
+hooks still run.
 
 ## Hook Execution Order
 
@@ -299,6 +291,7 @@ config :ex_bdd,
 ### Hook execution order
 
 Remember that:
+
 - Before hooks run in definition order
 - After hooks run in reverse definition order
 - Tagged hooks only run when tags match

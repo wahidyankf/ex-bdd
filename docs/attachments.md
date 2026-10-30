@@ -1,18 +1,15 @@
 # Attachments
 
-ExBdd lets you attach arbitrary data — screenshots, response payloads,
-logs, links — while a scenario runs. Attachments are recorded against the
-step (or hook execution) that attached them. Until a step fails they are
-invisible; a failing step's error output lists everything the scenario
-attached. When Cucumber Messages output is enabled (`config :ex_bdd,
-messages: "path.ndjson"`), attachments are also emitted as `attachment`
-envelopes in the message stream, attributed to their step or hook, where
-standard Cucumber report tooling can render them.
+ExBdd lets you attach arbitrary data — screenshots, response payloads, logs, links — while a scenario runs. Attachments
+are recorded against the step (or hook execution) that attached them. Until a step fails they are invisible; a failing
+step's error output lists everything the scenario attached. When Cucumber Messages output is enabled
+(`config :ex_bdd, messages: "path.ndjson"`), attachments are also emitted as `attachment` envelopes in the message
+stream, attributed to their step or hook, where standard Cucumber report tooling can render them.
 
 ## Attaching data
 
-`ExBdd.attach/4` works from any step definition or hook and returns the
-context unchanged, so it composes with any return style:
+`ExBdd.attach/4` works from any step definition or hook and returns the context unchanged, so it composes with any
+return style:
 
 ```elixir
 step "the API responds", context do
@@ -22,9 +19,8 @@ step "the API responds", context do
 end
 ```
 
-Strings are attached as-is. Binary data must be marked explicitly with
-`{:bytes, binary}` — Elixir can't tell text from bytes by type — and is
-Base64-encoded for transport:
+Strings are attached as-is. Binary data must be marked explicitly with `{:bytes, binary}` — Elixir can't tell text from
+bytes by type — and is Base64-encoded for transport:
 
 ```elixir
 step "I take a screenshot", context do
@@ -48,22 +44,17 @@ ExBdd.link(context, "https://dashboard.example.com/run/123")
 
 Each `ExBdd.Attachment` records where it came from:
 
-- `phase` — `:step`, `:before_scenario`, or `:after_scenario` (`nil` for
-  attachments from a `before_all` or `after_all` hook, which belong to no
-  scenario)
-- `step_text` / `step_line` — the attaching step, when `phase` is `:step`
-  (attachments from `before_step`/`after_step` hooks attribute to the step
-  they bracket)
+- `phase` — `:step`, `:before_scenario`, or `:after_scenario` (`nil` for attachments from a `before_all` or `after_all`
+  hook, which belong to no scenario)
+- `step_text` / `step_line` — the attaching step, when `phase` is `:step` (attachments from `before_step`/`after_step`
+  hooks attribute to the step they bracket)
 - `feature_file` / `scenario_name` — the owning scenario
 
-In the Cucumber Messages stream, a step's attachment references its
-`testCaseStarted` and `testStep`; a scenario hook's attachment references the
-hook's test step; and a run hook's attachment (`before_all`/`after_all`)
-references that hook's `testRunHookStarted`, landing between its
-`testRunHookStarted` and `testRunHookFinished` envelopes.
+In the Cucumber Messages stream, a step's attachment references its `testCaseStarted` and `testStep`; a scenario hook's
+attachment references the hook's test step; and a run hook's attachment (`before_all`/`after_all`) references that
+hook's `testRunHookStarted`, landing between its `testRunHookStarted` and `testRunHookFinished` envelopes.
 
-Attachments from concurrent `@async` scenarios are recorded safely and
-keep their own scenario's attribution.
+Attachments from concurrent `@async` scenarios are recorded safely and keep their own scenario's attribution.
 
 ## Failure output
 
