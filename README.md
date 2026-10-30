@@ -1,8 +1,5 @@
 # ExBdd for Elixir
 
-[![Hex.pm](https://img.shields.io/hexpm/v/ex_bdd.svg)](https://hex.pm/packages/ex_bdd)
-[![Docs](https://img.shields.io/hexpm/v/ex_bdd.svg?color=blue&label=hexdocs)](https://hexdocs.pm/ex_bdd)
-
 A behavior-driven development (BDD) testing framework for Elixir that enables writing executable specifications in natural language. ExBdd for Elixir bridges the gap between technical and non-technical stakeholders by allowing tests to be written in plain language while being executed as code.
 
 ExBdd for Elixir tests **43 of 49 pinned [Cucumber Compatibility Kit](https://github.com/cucumber/compatibility-kit) samples**, with documented comparison allowances. Raw emitted streams are validated against the Messages 34.2.1 schema and checked for reference and lifecycle integrity before normalized comparison. See the [compatibility boundaries](docs/compatibility.md) for exclusions, deltas, and reproducible checks.
