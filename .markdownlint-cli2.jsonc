@@ -1,0 +1,35 @@
+// Markdown is read in terminal editors without a renderer, so this config
+// enforces only the 120-column line limit; Prettier owns every other layout
+// choice. Archived plans, the changelog, and fixture bytes are exempt, and so are the Mix dependency and
+// build directories: `deps/` and `_build/` hold third-party packages whose own Markdown this repository does not own.
+// Feature files under `test/features/` are byte-sensitive test inputs, not prose, so neither tool touches them.
+{
+  "config": {
+    "default": false,
+    "MD013": {
+      "line_length": 120,
+      "heading_line_length": 120,
+      "code_block_line_length": 120,
+      "code_blocks": true,
+      "tables": true,
+      "headings": true,
+      "strict": true
+    }
+  },
+  "globs": ["**/*.md"],
+  // Command Code taste is personal application-written learning, kept local.
+  "ignores": [
+    ".commandcode/taste/**",
+    "**/node_modules/**",
+    "target/**",
+    "dist/**",
+    "local-tmp/**",
+    "worktrees/**",
+    "deps/**",
+    "_build/**",
+    "test/fixtures/**",
+    "test/features/**",
+    "plans/done/**",
+    "CHANGELOG.md"
+  ]
+}

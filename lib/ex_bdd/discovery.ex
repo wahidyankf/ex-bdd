@@ -25,7 +25,7 @@ defmodule ExBdd.Discovery do
   @default_support_pattern "test/features/support/**/*.exs"
 
   defmodule DiscoveryResult do
-    @moduledoc "Result struct returned by `ExBdd.Discovery.discover/1`."
+    @moduledoc "Result struct returned by feature discovery."
     defstruct features: [],
               step_modules: [],
               step_registry: nil,

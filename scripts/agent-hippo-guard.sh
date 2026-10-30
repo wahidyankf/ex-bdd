@@ -1,0 +1,299 @@
+#!/usr/bin/env bash
+# Repository-local consumer integration using the existing bounded HIPPO evaluator.
+set -euo pipefail
+
+input="$(cat)"
+tool_name="$(printf '%s' "$input" | jq -r '.tool_name // empty')"
+[ "$tool_name" != "Bash" ] && exit 0
+
+cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
+[ -z "$cmd" ] && exit 0
+workdir="$(printf '%s' "$input" | jq -r '.tool_input.workdir // empty')"
+
+# Some hosts omit workdir from the hook payload. A leading literal cd then sets the shell's directory.
+leading_cd='^[[:space:]]*cd[[:space:]]+(/[-/._[:alnum:]]+)[[:space:]]*&&'
+another_cd='(^|[[:space:];|&()])cd[[:space:]]+'
+if [[ "$cmd" =~ $leading_cd ]]; then
+	selected_workdir="${BASH_REMATCH[1]}"
+	remainder="${cmd#"${BASH_REMATCH[0]}"}"
+	if ! [[ "$remainder" =~ $another_cd ]]; then
+		workdir="$selected_workdir"
+	fi
+fi
+
+# --- Consumer check ---------------------------------------------------------------------------
+# Only a repository shipping the pinned `./hippo` consumer can satisfy this guard. Anywhere else the
+# correction would name a tool that is not present, and a rule nobody can comply with is a rule that
+# gets switched off — after which it protects nothing anywhere. So coverage deliberately follows the
+# consumer rather than the filesystem.
+#
+# This check is what lets the same file serve both layers. Inside a consuming repository it passes
+# trivially, so the repository copies need no variant of their own; in the machine-wide copy it is
+# the whole reason a scratch directory or a non-consuming repository is left alone.
+#
+# A consumer's `./hippo` is checksum-pinned by a tracked `hippo.lock`. HIPPO's own source checkout
+# also ships an executable `./hippo`, but it is a bootstrap that builds the tool under test and has
+# no lock. HIPPO cannot guard HIPPO, so that repository runs its gates directly by its own rule, and
+# requiring the lock is what leaves it alone instead of denying its documented setup.
+# The hook can run outside the Bash tool's requested working directory.
+repo_root="$(git -C "${workdir:-.}" rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$repo_root" ] && [ -x "$repo_root/hippo" ] && [ -f "$repo_root/hippo.lock" ] || exit 0
+
+deny() {
+	# `permissionDecisionReason` is the only text the model reliably sees, so it carries the
+	# correction inline rather than pointing at a document the model then has to go read.
+	local what="$1" hint="${2:-}"
+	cat <<JSON
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Repo policy (resource-aware-development): $what must run inside one outer HIPPO boundary. Re-run it as: rtk ./hippo run --class <ephemeral|service|transactional> --resource-tier <light|standard|heavy> --disk-path . -- <command>. Pick ephemeral for restartable work, service for attached long-running work, and transactional only for authorized mutations that must not be interrupted. Use light for narrow checks, standard for ordinary work, and heavy only for full builds or suites. $hint Do NOT wrap 'npm run <script>' in a second boundary when the script already runs ./hippo run itself: double-guarding stalls the run at near-zero CPU while hippo status still reports normal. Prefer sequential per-project runs over a run-many fan-out: each target is itself a nested chain, so one fan-out expands into dozens of concurrent processes."}}
+JSON
+	exit 0
+}
+
+launcher_hint="Run the program itself inside the boundary, not behind xargs or find -exec, which this guard cannot classify. Only echo, or prettier or markdownlint-cli2 named directly or in an allowed no-install spelling, may run behind them."
+wrapper_hint="Run the program itself inside the boundary, without the wrapper or its options, because they hide the program from this guard."
+
+# Only these two tools run without HIPPO admission, and only through a no-install spelling that fails closed when the
+# tool is missing: `npx --no-install <tool>`, or `npm exec --no -- <tool>` where the `--` is optional. Verified with
+# npm 11: `npx --no` exits 0 without running a missing tool, and `npm exec --no-install` only warns and still
+# installs, so neither spelling is accepted. A version suffix, a path, any other flag, or any other tool stays guarded.
+# File arguments are never inspected.
+unadmitted_tool() {
+	# $1 is the no-install flag, $2 is `yes` when `--` may follow it, and the rest are the words after the launcher.
+	local flag="$1" separator="$2" seen=0
+	shift 2
+	while [ "${1:-}" = "$flag" ]; do
+		shift
+		seen=1
+	done
+	[ "$seen" -eq 1 ] || return 1
+	if [ "$separator" = yes ] && [ "${1:-}" = "--" ]; then shift; fi
+	case "${1:-}" in
+	prettier | markdownlint-cli2) return 0 ;;
+	esac
+	return 1
+}
+
+# An intermediary that runs a program of its own is judged by that program. The words it appends come from stdin
+# or from find, so only the fixed words before them may decide. Harmless: `echo`, or one of the two tools in an
+# allowed spelling. Anything else, including no program at all, is refused.
+launched_safe() {
+	case "${1:-}" in
+	echo | prettier | markdownlint-cli2) return 0 ;;
+	npx) unadmitted_tool --no-install no "${@:2}" ;;
+	npm) [ "${2:-}" = exec ] && unadmitted_tool --no yes "${@:3}" ;;
+	*) return 1 ;;
+	esac
+}
+
+# xargs runs the words after its options, and appends the words it reads from stdin. `-I` and `-i` can take the
+# program itself from stdin, and an option this list does not know may hide it, so both are refused.
+xargs_safe() {
+	local -a argv=("$@")
+	local i=0 word letters extra letter position
+	while [ "$i" -lt "${#argv[@]}" ]; do
+		word="${argv[$i]}"
+		case "$word" in
+		--)
+			i=$((i + 1))
+			break
+			;;
+		--replace*) return 1 ;;
+		--null | --no-run-if-empty | --verbose | --interactive | --exit | --show-limits | --help | --version | --open-tty)
+			i=$((i + 1))
+			;;
+		--eof | --eof=* | --max-lines | --max-lines=*) i=$((i + 1)) ;;
+		--arg-file | --delimiter | --max-args | --max-procs | --max-chars | --process-slot-var) i=$((i + 2)) ;;
+		--arg-file=* | --delimiter=* | --max-args=* | --max-procs=* | --max-chars=* | --process-slot-var=*) i=$((i + 1)) ;;
+		--*) return 1 ;;
+		-?*)
+			letters="${word#-}"
+			extra=0
+			for ((position = 0; position < ${#letters}; position++)); do
+				letter="${letters:position:1}"
+				case "$letter" in
+				0 | p | r | t | x) ;;
+				e | l) break ;;
+				a | d | E | L | n | P | s)
+					if [ "$position" -eq $((${#letters} - 1)) ]; then extra=1; fi
+					break
+					;;
+				*) return 1 ;;
+				esac
+			done
+			i=$((i + 1 + extra))
+			;;
+		*) break ;;
+		esac
+	done
+	# No program at all means xargs runs echo.
+	if [ "$i" -ge "${#argv[@]}" ]; then return 0; fi
+	launched_safe "${argv[@]:$i}"
+}
+
+# find runs one command for each -exec, -execdir, -ok or -okdir, up to a `;` or a `+`. Quotes and backslashes are
+# removed before the comparison, so a quoted "-exec" is still seen as -exec.
+find_exec_safe() {
+	local -a exec_words=()
+	local word bare collecting=0
+	for word in "$@"; do
+		bare="${word//[\"\'\\]/}"
+		if [ "$collecting" -eq 1 ] && { [ "$bare" = ";" ] || [ "$bare" = "+" ]; }; then
+			launched_safe "${exec_words[@]}" || return 1
+			collecting=0
+		elif [ "$collecting" -eq 1 ]; then
+			exec_words+=("$word")
+		else
+			case "$bare" in
+			-exec | -execdir | -ok | -okdir)
+				collecting=1
+				exec_words=()
+				;;
+			esac
+		fi
+	done
+	if [ "$collecting" -eq 1 ]; then launched_safe "${exec_words[@]}" || return 1; fi
+	return 0
+}
+
+# The boundary may legitimately appear anywhere in the line, including behind `rtk` and after a
+# `cd ... &&`. Its presence anywhere is treated as covering the line: the realistic failure this
+# guard exists to stop is a line with NO boundary at all, and a stricter per-segment parse would
+# reject ordinary composed commands that are already admitted.
+if printf '%s' "$cmd" | grep -qE '(^|[^[:alnum:]_-])\.?/?hippo[[:space:]]+run([^[:alnum:]_.-]|$)'; then
+	exit 0
+fi
+
+# --- Command-position matching ------------------------------------------------------------------
+# A verb counts only when it is what the shell will actually execute, never when it is an argument
+# or a quoted string. Matching a verb anywhere in the line looks stricter but is strictly worse: it
+# refuses `grep -rn "npm install" docs/`, `rg "dotnet build"`, and every command whose text merely
+# discusses a build. A guard that blocks ordinary searching is a guard that gets switched off, and a
+# switched-off guard protects nothing anywhere — the same reasoning as the consumer check above.
+#
+# So the line is split at the points where a shell starts a new command — `|`, `&&`, `||`, `;`,
+# newline, and subshell or substitution boundaries — and only the first word of each resulting
+# segment is considered.
+#
+# Residual, stated rather than hidden: a verb handed to an interpreter as data (`sh -c "npm ci"`,
+# `bash -lc ...`, a Makefile target, an alias) is not in command position here and passes. That is
+# the same intermediary gap the enforcement disposition already records; text matching cannot close
+# it in principle, and closing it by matching argument text would reintroduce the false positives
+# above. The launchers xargs and find -exec are the exception: they are judged by the program they run.
+segments="$(printf '%s' "$cmd" | sed -E 's/\$\(/\n/g; s/[|;&()`]/\n/g')"
+
+while IFS= read -r seg; do
+	# Strip leading whitespace.
+	seg="${seg#"${seg%%[![:space:]]*}"}"
+	[ -z "$seg" ] && continue
+
+	# Strip prefixes that wrap a command without being one: environment assignments, the shell keywords that
+	# introduce a command, and the pass-through launchers. `rtk` matters most here — every command in these
+	# repositories is typed through it, so without this the first word is always `rtk` and nothing ever matches.
+	# A launcher followed by an option hides the program behind that option (`env -i`, `nice -n 5`), so it is
+	# refused rather than guessed at.
+	wrapper=""
+	while [[ "$seg" =~ ^([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|([^[:space:]]*/)?(rtk|sudo|time|env|nice|command|exec|builtin)|if|then|else|elif|do|while|until|!|\{)[[:space:]]+ ]]; do
+		prefix="${BASH_REMATCH[1]}"
+		seg="${seg#"${BASH_REMATCH[0]}"}"
+		seg="${seg#"${seg%%[![:space:]]*}"}"
+		case "${prefix##*/}" in
+		rtk | sudo | time | env | nice | command | exec | builtin)
+			if [[ "$seg" == -* ]]; then wrapper="${prefix##*/}"; fi
+			;;
+		esac
+	done
+	if [ -n "$wrapper" ]; then deny "'$wrapper' with an option" "$wrapper_hint"; fi
+	[ -z "$seg" ] && continue
+
+	# Quotes and backslashes do not change the program the shell runs, so they are removed before the match.
+	first_raw="${seg%%[[:space:]]*}"
+	first_bare="${first_raw//[\"\'\\]/}"
+	first="${first_bare##*/}" # a PATH-qualified call is the same program
+	rest="${seg#"$first_raw"}"
+	rest="${rest#"${rest%%[![:space:]]*}"}"
+	second_raw="${rest%%[[:space:]]*}"
+	second="${second_raw//[\"\'\\]/}"
+
+	# The words of this command, for the exemptions that read their arguments and for the launchers.
+	read -ra words <<<"$seg"
+
+	# Launchers are judged before the trivial-invocation carve-out below. A metadata-looking tail can still be the
+	# argument list that a launcher hands to a program it runs.
+	if [ "$first" = xargs ]; then
+		xargs_safe "${words[@]:1}" || deny "'xargs' (its program cannot be classified)" "$launcher_hint"
+	fi
+	find_exec_safe "${words[@]}" || deny "'find -exec' (its program cannot be classified)" "$launcher_hint"
+
+	# Trivial-invocation carve-out, per segment. A metadata query spawns no build graph, no
+	# server and no test host. `-v` is excluded deliberately: it means verbosity, not version,
+	# in most of these tools.
+	case "$second" in
+	--version | --help | -h | -V) continue ;;
+	esac
+	# ...and the same for `<tool> <subcommand> --help`, but only when the flag is the last word,
+	# so `nx run app:build --help-ish-arg extra` is still a real invocation.
+	third="${rest#"$second_raw"}"
+	third="${third#"${third%%[![:space:]]*}"}"
+	case "$third" in
+	--version | --help | -h | -V) continue ;;
+	esac
+
+	case "$first" in
+	npm)
+		# Named explicitly by the rule: "npm install and npm exec are not scripts and do
+		# take the outer boundary".
+		#
+		# `npm run <script>` is deliberately absent: every compute-bearing package.json
+		# script in these repositories already invokes ./hippo run itself or delegates to
+		# one that does, so an outer boundary makes the inner call wait on its own
+		# ancestor's lease. The run then stalls at near-zero CPU while `hippo status` still
+		# reports `normal` — a failure that reads as a hang, not as a policy error, which is
+		# why this carve-out is load-bearing rather than a convenience.
+		case "$second" in
+		exec)
+			# `npm exec --no -- <tool>` is the admitted spelling; every other exec takes the boundary.
+			unadmitted_tool --no yes "${words[@]:2}" || deny "'npm exec'"
+			;;
+		install | ci) deny "'npm $second'" ;;
+		esac
+		;;
+	npx)
+		# npm exec under another name; takes the boundary identically, except the no-install spelling above.
+		unadmitted_tool --no-install no "${words[@]:1}" || deny "'npx'"
+		;;
+	nx)
+		# A bare `nx` through a PATH shim expands into the same task graph as `npm exec nx`,
+		# so it takes the boundary on its own name.
+		case "$second" in
+		run | run-many | affected | build | test | lint | watch | release | e2e) deny "'nx $second'" ;;
+		esac
+		;;
+	dotnet)
+		# Only verbs that spawn a build graph, a test host, or a long-lived process. Metadata
+		# verbs (--list-sdks, --info, nuget locals --list) spawn none. This arm also covers
+		# the residue case: build/test/publish leave MSBuild node-reuse workers and Roslyn
+		# VBCSCompiler servers resident after the command returns, so an unadmitted run
+		# dirties the host for every admission that follows it.
+		case "$second" in
+		build | publish | test | run | restore | format | watch | msbuild | pack) deny "'dotnet $second'" ;;
+		esac
+		;;
+	cargo)
+		# `xtask` is included because it is the entry point rhino actually uses; it delegates
+		# to a full workspace build. `metadata` and `tree` spawn nothing and are absent.
+		case "$second" in
+		build | test | run | check | clippy | bench | doc | install | xtask | fmt | nextest) deny "'cargo $second'" ;;
+		esac
+		;;
+	mix)
+		# `phx.server` and `run --no-halt` leave a server resident, which is why the service
+		# class exists; the rest spawn a compile graph or a test host.
+		case "$second" in
+		deps.get | deps.compile | compile | test | run | release | phx.server | dialyzer | credo | format) deny "'mix $second'" ;;
+		ecto.*) deny "'mix $second'" ;;
+		esac
+		;;
+	esac
+done <<<"$segments"
+
+exit 0
