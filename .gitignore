@@ -28,4 +28,9 @@ ex_bdd-*.tar
 # Repository tooling (Prettier, markdownlint-cli2, husky) installs here and is never committed.
 /node_modules/
 
+# Track Serena project policy; keep generated and personal state local.
+/.serena/*
+!/.serena/project.yml
+!/.serena/README.md
+
 **/.claude/settings.local.json
