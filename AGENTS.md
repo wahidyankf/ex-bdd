@@ -67,9 +67,9 @@ branch and fast-forwards `main`. Never use a co-author trailer in a commit messa
 
 ## Documents
 
-- Every Markdown line is at most 120 columns, and every diagram is ASCII art in a `text` block, per
-  [Markdown Line Length](repo-governance/conventions/markdown-line-length.md) and
-  [Markdown Visualizations](repo-governance/conventions/markdown-visualizations.md): no Mermaid, image, or inline HTML.
+- Every Markdown line is at most 120 columns, and every conceptual diagram is a Mermaid block carrying an accessible
+  title and description, per [Markdown Line Length](repo-governance/conventions/markdown-line-length.md) and
+  [Markdown Visualizations](repo-governance/conventions/markdown-visualizations.md): no image or inline HTML.
 - `AGENTS.md`, `CLAUDE.md`, and each `repo-governance/**/*.md` and `.agents/**/*.md` file hold 750 words at most.
 - Governed documents declare `description` and `when_to_use` front matter, per
   [Artifact Metadata](repo-governance/conventions/structure/artifact-metadata.md).

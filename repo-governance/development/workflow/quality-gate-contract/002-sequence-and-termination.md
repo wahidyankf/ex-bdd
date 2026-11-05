@@ -13,34 +13,36 @@ when_to_use: >-
 One cycle is one full audit followed by one repair. Every arrow back to an earlier step is bounded by the cycle counter
 `k`.
 
-```text
-freeze subject (revision + scope)
-        |
-        v
-entry tooling run ---- red ----> root-cause pre-step (<= 3 attempts, outside the cycle budget)
-        |                              |                     |
-      green                          green               still red --> BLOCKED (tooling)
-        |<-----------------------------+
-        v
-k = 1
-        |
-        v
-full audit by the checker  -- no open blocking row --> verdict per step 5
-        |
-   blocking rows
-        v
-freeze ledger L_k ---> <family>-propagation (run by the fixer)
-        |                   repairs only L_k rows, verifies each row
-        v
-blocking count did not fall since the previous audit? ---- yes ---> FAIL (no progress)
-        |
-        no
-        v
-k = max-cycles? --- no ---> k = k + 1, back to the full audit
-        |
-       yes
-        v
-exit tooling run + per-row verification ---> PASS / PASS_WITH_FINDINGS (blocking rows closed) or FAIL
+```mermaid
+flowchart TD
+    accTitle: Gate Sequence and Termination
+    accDescr: Flowchart with 14 nodes and 16 connections from frozen subject to terminal verdict.
+    Freeze["Freeze subject<br/>(revision + scope)"] --> Entry["Entry tooling run"]
+    Entry -->|red| RootCause["Root-cause pre-step<br/>(at most 3 attempts)<br/>(outside cycle budget)"]
+    Entry -->|green| Audit["Full audit by checker"]
+    RootCause -->|green| Audit
+    RootCause -->|still red| Blocked["BLOCKED (tooling)"]
+    Audit -->|no open blocking row| Verdict["No open blocking row<br/>(verdict per step 5)"]
+    Audit -->|blocking rows| Ledger["Freeze ledger L_k"]
+    Ledger --> Prop["Family propagation<br/>(fixer repairs rows)"]
+    Prop --> Progress{"Blocking count fell<br/>since previous audit?"}
+    Progress -->|yes| NoProgress["FAIL (no progress)"]
+    Progress -->|no| Ceiling{"k = max-cycles?"}
+    Ceiling -->|no| NextK["k = k + 1"]
+    NextK -->|back to full audit| Audit
+    Ceiling -->|yes| ExitRun["Exit tooling run<br/>(verify every row)"]
+    Verdict --> ExitRun
+    ExitRun --> Done["PASS, PASS_WITH_FINDINGS<br/>or FAIL (rows open)"]
+
+    classDef process fill:#0173B2,stroke:#000000,color:#FFFFFF,stroke-width:2px
+    classDef decision fill:#DE8F05,stroke:#000000,color:#000000,stroke-width:2px
+    classDef terminalOk fill:#029E73,stroke:#000000,color:#000000,stroke-width:2px
+    classDef terminalBad fill:#CA9161,stroke:#000000,color:#000000,stroke-width:2px
+    class Freeze,Entry,RootCause,Audit,Verdict,Ledger,Prop,NextK,ExitRun process
+    class Progress,Ceiling decision
+    class Done terminalOk
+    class Blocked,NoProgress terminalBad
+    classDef default fill:#0173B2,stroke:#000000,color:#FFFFFF
 ```
 
 1. **Freeze the subject.** Record the revision with any uncommitted paths, its commit identifier when one exists, and

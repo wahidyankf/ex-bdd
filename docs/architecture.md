@@ -198,14 +198,25 @@ end
 
 ## Data Flow
 
-```
-Feature File → Parser → AST
-                          ↓
-Step Files → Discovery → StepRegistry
-                          ↓
-                      Compiler → Test Modules
-                                      ↓
-                                  ExUnit → Results
+The data flow runs from feature and step files through discovery and compilation to ExUnit results.
+
+```mermaid
+flowchart LR
+    accTitle: Data Flow
+    accDescr: Flowchart with 10 nodes and 9 connections from feature and step files to ExUnit results.
+    FeatureFile["Feature File"] --> Parser["Parser"] --> AST["AST"]
+    StepFiles["Step Files"] --> Discovery["Discovery"] --> StepRegistry["Step Registry"]
+    AST --> Compiler["Compiler"]
+    StepRegistry --> Compiler
+    Compiler --> TestModules["Test Modules"] --> ExUnit["ExUnit"] --> Results["Results"]
+
+    classDef source fill:#DE8F05,stroke:#000000,color:#000000,stroke-width:2px
+    classDef stage fill:#0173B2,stroke:#000000,color:#FFFFFF,stroke-width:2px
+    classDef result fill:#029E73,stroke:#000000,color:#000000,stroke-width:2px
+    class FeatureFile,StepFiles source
+    class Parser,AST,Discovery,StepRegistry,Compiler,TestModules,ExUnit stage
+    class Results result
+    classDef default fill:#0173B2,stroke:#000000,color:#FFFFFF
 ```
 
 ## Key Design Decisions
