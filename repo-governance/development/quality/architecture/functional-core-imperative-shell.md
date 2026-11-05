@@ -34,9 +34,20 @@ a core. An empty placeholder zone promises structure nobody asked for.
 
 ## One Direction
 
-```text
-shell  --imports-->  core    allowed
-core   --imports-->  shell   forbidden
+The diagram shows the one allowed dependency direction.
+
+```mermaid
+flowchart LR
+    accTitle: One Dependency Direction
+    accDescr: Flowchart with 2 nodes and 2 connections: shell imports core (allowed); core to shell is forbidden.
+    Shell["shell<br/>(effects)"] -->|imports: allowed| Core["core<br/>(decisions)"]
+    Core -.->|imports: forbidden| Shell
+
+    classDef shellZone fill:#DE8F05,stroke:#000000,color:#000000,stroke-width:2px
+    classDef coreZone fill:#029E73,stroke:#000000,color:#000000,stroke-width:2px
+    class Shell shellZone
+    class Core coreZone
+    classDef default fill:#0173B2,stroke:#000000,color:#FFFFFF
 ```
 
 The core imports only other core modules and effect-free libraries. It never imports an interface framework, a server

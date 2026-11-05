@@ -44,10 +44,15 @@ Split a feature or a fix into cycles that each cover one behaviour: the simplest
 and boundary in turn. A cycle covering several behaviours hides which one a failure belongs to. A long run of cycles is
 normal for real work, not a reason to merge them. A cycle outlasting a few minutes is split.
 
-```text
-red: empty input is rejected          -> green -> refactor
-red: input missing its separator fails -> green -> refactor
-red: well-formed input is accepted    -> green -> refactor
+The diagram shows the cycle; each turn covers one behaviour: empty input rejected, separator missing failed, well-formed
+input accepted.
+
+```mermaid
+flowchart LR
+    accTitle: Cycle
+    accDescr: Three nodes and three connections, red to green to refactor and back.
+    Red["Red"] --> Green["Green"] --> Refactor["Refactor"]
+    Refactor --> Red
 ```
 
 After the final cycle, run the fast gate from [Test Boundaries and Gates](../test-boundaries-and-gates.md) to catch
