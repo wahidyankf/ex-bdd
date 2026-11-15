@@ -18,3 +18,5 @@ others rely on is declared and kept compatible.
 - [Functional Core, Imperative Shell](functional-core-imperative-shell.md) — a pure decision core, a thin effect shell,
   and the rules that keep callbacks thin
 - [Public Contract](public-contract.md) — a tool's declared surface, and compatible versus breaking changes
+- [Consumer Correctness First](consumer-correctness-first.md) — descriptive errors, matching names, and no silent
+  behavior on surfaces a consumer touches
