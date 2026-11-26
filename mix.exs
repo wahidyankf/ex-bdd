@@ -31,6 +31,7 @@ defmodule ExBdd.MixProject do
         "test.watch": :test,
         precommit: :test,
         "test:quick": :test,
+        "test:integration": :test,
         validate: :test
       ]
     ]
@@ -102,8 +103,10 @@ defmodule ExBdd.MixProject do
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
-        "test"
+        "test --exclude integration"
       ],
+      "test:integration": ["test --include integration test/integration"],
+      "test:behaviour:coverage": ["cmd ./rhino behaviour coverage validate"],
       validate: [
         "hex.audit",
         "compile --warnings-as-errors",
