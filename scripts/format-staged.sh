@@ -14,7 +14,9 @@ for file in "$@"; do
 		continue
 		;;
 	*.ex | *.exs)
-		mix format "$file"
+		# The Elixir formatter runs inside one HIPPO boundary, as beaver-nest's pre-commit does, so it never
+		# runs outside a guarded boundary. Its single boundary is this call; the hook itself stays unbounded.
+		./hippo run --class ephemeral --resource-tier light --disk-path . -- mix format "$file"
 		;;
 	*.md | *.json | *.yml | *.yaml)
 		prettier --write "$file"
