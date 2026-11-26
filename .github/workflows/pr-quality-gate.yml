@@ -2,11 +2,11 @@ name: PR quality gate
 
 # The one hosted gate for this repository. It replaces ci.yml and quality.yml.
 #
-# Every gate comes from the registry in `repo-config.yml`, dispatched through the
-# pinned RHINO wrapper. Each job names its registry entries with `--entry`, so no
-# job copies a command and every pull-request entry runs in exactly one job (C1).
-# The Elixir and OTP pairs are the matrix that ci.yml used to hold, and each pair
-# runs `mix validate` and the CCK provenance check.
+# Gates come from the registry in `repo-config.yml`, dispatched through the pinned
+# RHINO wrapper. Each job names its registry entries with `--entry`, so every
+# pull-request entry runs in exactly one job (C1). The Elixir and OTP matrix is the
+# one job outside the registry: each pair runs only `mix validate`, and the registry
+# entries run once, on the pinned toolchain, in `elixir-entries`.
 #
 # The main surface runs after a push to main. A pull request never runs it, and
 # the aggregate job checks that each job ran or was skipped as its event expects.
@@ -67,6 +67,7 @@ jobs:
             --entry md-naming --entry directory-map --entry quality-gates \
             --entry artifact-metadata --entry harness-adapters \
             --entry repo-config --entry gate-registry --entry gate-wiring \
+            --entry behaviour-coverage \
             --base "${BASE_SHA}" --head "${HEAD_SHA}"
 
   # Hygiene for every change: the public-safety screens and the commit-message lint.
@@ -100,7 +101,7 @@ jobs:
             --entry commit-message \
             --base "${BASE_SHA}" --head "${HEAD_SHA}"
 
-  # The Elixir-dependent entries of the pull-request surface.
+  # The Elixir-dependent entries of the pull-request surface, on the pinned toolchain.
   elixir-entries:
     name: Elixir entries
     if: github.event_name == 'pull_request'
@@ -144,11 +145,22 @@ jobs:
           export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
           ./rhino gate run --surface pull-request \
             --entry format-staged --entry mix-format --entry mix-credo \
-            --entry mix-compile --entry mix-test --entry hex-package \
+            --entry mix-compile --entry mix-test --entry mix-test-integration \
+            --entry hex-package \
             --base "${BASE_SHA}" --head "${HEAD_SHA}"
 
-  # One job per Elixir and OTP pair, as ci.yml's matrix did. The 1.20.4 and
-  # 29.1.2 pair matches mise.toml.
+      # Outside the registry: a GitHub lookup of the pinned CCK fixtures. It does not
+      # vary by Elixir version, so it runs once here rather than in each matrix pair.
+      - name: Verify pinned CCK provenance
+        run: mix run scripts/check_cck.exs
+        env:
+          MIX_ENV: test
+          GH_TOKEN: ${{ github.token }}
+
+  # The Elixir and OTP matrix is a compatibility job outside the registry. Each pair
+  # runs only `mix validate`, a mix alias that repeats the format, credo, compile, and
+  # test commands and adds hex audit, unused-dependency, release-script, and package
+  # build checks. The 1.20.4 and 29.1.2 pair matches mise.toml.
   elixir:
     name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
     if: github.event_name == 'pull_request'
@@ -186,16 +198,8 @@ jobs:
 
       - run: mix validate
 
-      - run: mix test:integration
-
-      - name: Verify pinned CCK provenance
-        run: mix run scripts/check_cck.exs
-        env:
-          MIX_ENV: test
-          GH_TOKEN: ${{ github.token }}
-
-  # The main surface, after a push to main. Today it holds the same entries the
-  # pull-request surface runs, so it repeats them on the merged tree.
+  # The main surface, after a push to main. It runs every registry entry with a main
+  # run-on, which repeats most pull-request entries on the merged tree and adds test-e2e.
   main-surface:
     name: Main surface
     if: github.event_name == 'push'
