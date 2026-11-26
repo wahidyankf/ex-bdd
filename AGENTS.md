@@ -24,19 +24,15 @@ case between the run and the Messages emitter. `lib/mix/tasks/` holds the instal
 ## Gates
 
 ```text
-mix compile --warnings-as-errors
-mix format --check-formatted
-mix credo --strict
-mix test
-npx --no-install prettier --check .
-bash scripts/check-package.sh       # the tarball lists the files mix.exs declares
-./rhino gate run --surface main     # everything before a pull request
+./rhino gate list                                                  # the declared surfaces and entries
+./rhino gate run --surface pull-request --base <sha> --head <sha>  # the landing gate before a pull request
 ```
 
 `repo-config.yml` is the one gate registry. The husky hooks, the hosted `quality` workflow, and the aggregate command
 dispatch it through `./rhino gate run --surface <surface>`, so a gate added there reaches every surface it declares.
-`pre-push` refuses a push whose compile, format, credo, or tests fail, and one that breaks a link, a word budget, the
-120-column limit, Prettier formatting, or a generated adapter.
+Under the [Test and Gate Contract](repo-governance/development/quality/checks/test-and-gate-contract.md), `pre-push`
+runs only the leak scan, and `pull-request` holds every other check. The registry does not yet match that placement;
+[Quality Gates](repo-governance/development/quality-gates.md) records each open gap.
 
 `./rhino` installs the RHINO release `rhino.lock` pins and verifies it before running; exit `125` is the wrapper
 refusing. This repository pins RHINO and HIPPO: no FERRET. `./hippo` guards local runs under the shared reservation.

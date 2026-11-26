@@ -15,8 +15,8 @@ order-sensitive, and running in a gate that promised neither.
 This standard implements [Reproducibility](../../../principles/reproducibility.md),
 [Explicit Over Implicit](../../../principles/explicit-over-implicit.md), and
 [Automation Over Manual](../../../principles/automation-over-manual.md). The three layers, classification by the
-strongest boundary a test touches, the loopback choice, and whether a coverage floor exists are owned by [Layers and
-Adapters][002-layers-and-adapters].
+strongest boundary a test touches, and the loopback choice are owned by [Layers and Adapters][002-layers-and-adapters].
+The 99% unit floor is owned by [Coverage Floor](../checks/test-and-gate-contract/006-coverage-floor.md).
 
 ## What Each Boundary Excludes
 
@@ -67,10 +67,9 @@ as [Software Quality Enforcement][software-quality-enforcement] requires.
 
 ## Adopter Decisions
 
-- **layers a floor covers** — Option: unit only; Gains: the floor stays inside the fast gate; Costs: code that only real
-  resources reach is unmeasured
-- **layers a floor covers** — Option: unit and integration; Gains: real-boundary code is measured as well; Costs: a
-  second floor, run outside the fast gate
+- **layers a floor covers** — fixed: unit only, per
+  [Coverage Floor](../checks/test-and-gate-contract/006-coverage-floor.md); integration and end-to-end coverage never
+  combine with it.
 - **task runner** — Option: a task-graph tool; Gains: affected selection and ordering come built in; Costs: one more
   tool to pin and maintain
 - **task runner** — Option: plain scripts; Gains: nothing beyond the language toolchain; Costs: affected selection is

@@ -38,5 +38,6 @@ Where each stage of delivering a change is governed. The map adds no rule; each 
 ## Directory Map
 
 - [Agents](agents/README.md)
+- [Quality Gates](quality-gates.md) — how this repository meets the test and gate contract, with each rule's status
 - [Quality](quality/README.md)
 - [Workflow](workflow/README.md)

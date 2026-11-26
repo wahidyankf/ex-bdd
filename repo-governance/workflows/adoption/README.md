@@ -19,3 +19,5 @@ is not adopted here.
 ## Directory Map
 
 - [Adopt Artifact](adopt-artifact.md)
+- [Assess Alignment](assess-alignment.md) — Compares a repository against the catalog by intent and reports one status
+  per artifact, without writing anything anywhere.

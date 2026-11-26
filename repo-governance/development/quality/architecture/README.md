@@ -20,3 +20,8 @@ others rely on is declared and kept compatible.
 - [Public Contract](public-contract.md) — a tool's declared surface, and compatible versus breaking changes
 - [Consumer Correctness First](consumer-correctness-first.md) — descriptive errors, matching names, and no silent
   behavior on surfaces a consumer touches
+- [Hexagonal Architecture Modules](hexagonal-architecture/README.md) — the modules on Layers and the Dependency Rule,
+  Ports and Adapters, Composition Roots and Test Adapters and Application Shapes
+- [Hexagonal Architecture](hexagonal-architecture.md) — Structures an application as a domain, an application layer that
+  owns ports, and adapters at the edge, with every dependency pointing inward and adapters wired in one composition
+  root.

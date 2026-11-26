@@ -35,3 +35,16 @@ relinks each gate's companions, and runs its searches, per the contract's
 - [Rules Propagation](rules-propagation.md)
 - [Rules Propagation Modules](rules-propagation/README.md)
 - [Rules Quality Gate](rules-quality-gate.md)
+- [API HTTP Propagation](api-http-propagation.md) — Repairs the rows of a frozen api-http-quality ledger in the
+  service's source, tests, contract, and specification, each repair landing with a reproducing test; the api-http
+  family's sole writer.
+- [API HTTP Quality Gate](api-http-quality-gate.md) — Judges a running HTTP interface against its published contract and
+  behaviour specifications through real requests in at most three bounded cycles, and returns one advisory verdict.
+- [Exploratory and Usability Review](exploratory-usability-review.md) — Runs one bounded exploratory and usability pass
+  over declared tasks, recording observations, failures, and a terminal result.
+- [Gherkin Implementation Review](gherkin-implementation-review.md) — Compares written Gherkin acceptance scenarios
+  against what the implementation and its tests actually do.
+- [UI Web Propagation](ui-web-propagation.md) — Repairs the rows of a frozen ui-web-quality ledger in the interface's
+  source, tests, and specification, each repair landing with a reproducing test; the ui-web family's sole writer.
+- [UI Web Quality Gate](ui-web-quality-gate.md) — Judges a running web user interface against its design, accessibility,
+  and behaviour specifications in at most three bounded cycles, and returns one advisory verdict.

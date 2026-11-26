@@ -33,7 +33,7 @@ missing required complete gate violates this rule. Existing TDD scope exceptions
 **Enforcement: unenforced by decision.** Selecting the meaningful affected scope and proving its recorded evidence
 require judgement; static text checks do not establish semantic test execution.
 
-The repository remains unit-only with its 100% branch coverage floor and existing exclusions, as recorded in the
+The repository remains unit-only. Its coverage floor is the 99% unit target, open, as recorded in the
 [Repository Adapter](../../stacks/repository-adapter.md). Integration and E2E gates apply only where adopted. This
 library member has no E2E suite and therefore no full-E2E schedule (no-schedule statement); if E2E is adopted later, its
 full suite runs on its scheduled CI workflow by default with local runs selective to the touched flow.

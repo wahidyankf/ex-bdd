@@ -24,3 +24,4 @@ repository. A convention says which of several defensible options this repositor
 - [Writing Style](writing-style.md) — clear English for users and brief, reasoned documents and notes
 - [Security](security/README.md)
 - [Structure](structure/README.md)
+- [Writing Modules](writing/README.md) — the modules on Colour Accessibility, Diagrams Modules and Diagrams

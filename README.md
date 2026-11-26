@@ -139,6 +139,10 @@ mix test:quick
 mix precommit
 ```
 
+The standard target names of the test and gate contract are `test:quick`, `test:integration`, `test:e2e`, and
+`test:behaviour:coverage`. This repository runs `test:quick` as `mix test:quick`. It does not define the other three
+yet; `repo-governance/development/quality-gates.md` records their status.
+
 ## File Structure
 
 By default, ExBdd expects the following structure:

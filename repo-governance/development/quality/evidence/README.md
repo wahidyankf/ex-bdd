@@ -19,7 +19,14 @@ Evidence standards. They answer what a claim, a finding, or a measurement has to
   priority, and report contents
 - [Finding Criticality and Confidence Modules](finding-criticality-and-confidence/README.md) — levels, confidence and
   re-validation, priority and reporting
+- [Plan Anti Hallucination Modules](plan-anti-hallucination/README.md) — the modules on Grounding and Citation and
+  Absence and Completeness
 - [Preexisting Error Resolution](preexisting-error-resolution.md) — telling a failing gate the run caused from one it
   did not, and repairing only what the run caused
 - [Preexisting Error Resolution Modules](preexisting-error-resolution/README.md) — triage and investigation, and
   pipeline availability
+- [Trustworthy Measurement](trustworthy-measurement.md) — Requires a measured number to show that its command ran and
+  finished, that it measured the path that really runs, and that its metric can respond to the change, before it
+  justifies a decision.
+- [Trustworthy Measurement Modules](trustworthy-measurement/README.md) — the modules on The Run Itself, The Path
+  Measured and Probes and Lasting Assertions

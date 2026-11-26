@@ -58,3 +58,15 @@ system.
 - [Reproducibility](reproducibility.md)
 - [Root Cause Orientation](root-cause-orientation.md)
 - [Simplicity Over Complexity](simplicity-over-complexity.md)
+- [Consumer Independence](consumer-independence.md) — States that a tool or artifact shared by many consumers holds none
+  of their answers: it requires what only a consumer knows, refuses rather than guessing, and treats its surface as a
+  contract.
+- [Deliberate Problem-Solving](deliberate-problem-solving.md) — States that before acting on a problem its assumptions
+  are made explicit, its readings, valid approaches, and a simpler option are surfaced with their trade-offs, and
+  confusion stops the work, resolved by inspection before any question.
+- [Documentation First](documentation-first.md) — States that a system, rule, decision, or procedure is written down
+  with or before the change that creates it, explaining why as well as what, and kept true by every later change.
+- [Governance Continuity](governance-continuity.md) — States that the rules, authority, and state governing work survive
+  context loss, so a resumed or handed-off reader acts under exactly the rules and permissions the original reader had.
+- [Progressive Disclosure](progressive-disclosure.md) — States that a reader reaches the rule for the task in hand
+  without reading the rules for other tasks, with always-read surfaces kept short and detail one link away in its owner.
