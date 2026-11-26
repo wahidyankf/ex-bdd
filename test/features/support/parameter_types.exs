@@ -7,4 +7,9 @@ defmodule FeatureParameterTypes do
   )
 
   parameter_type(:priority, regexp: ~r/low|normal|high/)
+
+  parameter_type(:seat,
+    regexp: ~r/[0-9]+[A-F]/,
+    transform: fn seat -> %{seat: seat} end
+  )
 end

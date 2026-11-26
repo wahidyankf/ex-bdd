@@ -18,3 +18,9 @@ Feature: Rules group related scenarios
     Scenario: only the feature background applies
       When I total the ledger
       Then the ledger total is 1
+
+  @rule-tagged
+  Rule: Rule tags apply to the scenarios in the rule
+    Scenario: a scenario inherits the rule tag
+      When I total the ledger
+      Then the rule tag hook has run

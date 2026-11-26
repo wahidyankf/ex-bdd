@@ -1,12 +1,5 @@
 Feature: Error Reporting
 
-Background:
-  Given initial setup is complete
-
-Scenario: Missing step definition
-  When I try to use a step with no definition
-  Then I should see a helpful error message
-
-Scenario: Step execution failure
-  When I execute a step that fails
-  Then I should see the error reason and step history
+Scenario: verify_features reports a step that has no binding
+  When I verify the fixture feature "undefined.feature" with the fixture steps "steps.exs"
+  Then verification fails with a message containing "has no matching binding"

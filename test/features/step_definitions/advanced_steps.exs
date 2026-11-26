@@ -67,4 +67,40 @@ defmodule AdvancedSteps do
     assert context.found_user["email"] == expected_email
     context
   end
+
+  step "I write the greeting:", context do
+    Map.put(context, :greeting, context.docstring)
+  end
+
+  step "the greeting is {string}", %{args: [expected]} = context do
+    assert context.greeting == expected
+    context
+  end
+
+  step "the guests are:", context do
+    Map.put(context, :guests, context.datatable.maps)
+  end
+
+  step "the first guest is {string} in {string}", %{args: [guest, city]} = context do
+    assert List.first(context.guests) == %{"guest" => guest, "city" => city}
+    context
+  end
+
+  step "a guest list with a blank nickname:", context do
+    Map.put(context, :blank_guests, context.datatable.maps)
+  end
+
+  step "the first nickname is {string}", %{args: [expected]} = context do
+    assert List.first(context.blank_guests)["nickname"] == expected
+    context
+  end
+
+  step "a table with escaped cells:", context do
+    Map.put(context, :escaped, Enum.map(context.datatable.maps, &Map.get(&1, "text")))
+  end
+
+  step "the escaped cells are read", context do
+    assert context.escaped == ["a | b", "line1\nline2"]
+    context
+  end
 end

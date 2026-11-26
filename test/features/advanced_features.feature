@@ -23,3 +23,31 @@ Scenario: Use data table in a step
     | carol    | carol@email.com  | user  |
   When I search for "alice"
   Then I should find user with email "alice@email.com"
+
+Scenario Outline: Placeholders fill a docstring and a data table
+  Given I write the greeting:
+    """
+    Hello <name>, welcome to <place>.
+    """
+  And the guests are:
+    | guest  | city    |
+    | <name> | <place> |
+  Then the greeting is "Hello <name>, welcome to <place>."
+  And the first guest is "<name>" in "<place>"
+
+  Examples:
+    | name  | place |
+    | Alice | Paris |
+
+Scenario: A blank table cell arrives as an empty string
+  Given a guest list with a blank nickname:
+    | name  | nickname |
+    | alice |          |
+  Then the first nickname is ""
+
+Scenario: Escaped pipes and newlines in table cells
+  Given a table with escaped cells:
+    | text         |
+    | a \| b       |
+    | line1\nline2 |
+  Then the escaped cells are read

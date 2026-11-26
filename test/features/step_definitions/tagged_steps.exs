@@ -1,47 +1,40 @@
 defmodule TaggedSteps do
   use ExBdd.StepDefinition
+  import ExUnit.Assertions
 
-  # Smoke test steps
   step "a simple smoke test", context do
     Map.put(context, :smoke_test, true)
   end
 
-  step "I run with smoke tag filter", context do
-    context
-  end
-
-  step "this scenario should run", context do
-    context
-  end
-
-  # Regression test steps
   step "a regression test", context do
     Map.put(context, :regression_test, true)
   end
 
-  step "I run with regression tag filter", context do
-    context
-  end
-
-  # Multi-tagged scenario steps
   step "a test with multiple tags", context do
     Map.put(context, :multi_tagged, true)
   end
 
-  step "I run with either smoke or regression tag filter", context do
-    context
-  end
-
-  # Untagged scenario steps
   step "an untagged test", context do
     Map.put(context, :untagged_test, true)
   end
 
-  step "I run with tag filters", context do
+  step "the smoke tag hook has run", context do
+    assert context[:smoke_hook] == true
     context
   end
 
-  step "this scenario should not run", context do
+  step "the smoke tag hook has not run", context do
+    refute Map.has_key?(context, :smoke_hook)
+    context
+  end
+
+  step "the regression tag hook has run", context do
+    assert context[:regression_hook] == true
+    context
+  end
+
+  step "the regression tag hook has not run", context do
+    refute Map.has_key?(context, :regression_hook)
     context
   end
 end

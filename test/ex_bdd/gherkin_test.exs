@@ -486,25 +486,34 @@ defmodule ExBdd.Gherkin.ParserTest do
       # This test ensures all feature files are fully parsed
       # If parsing fails silently, this test will catch it
       expected_counts = %{
-        "test/features/advanced_features.feature" => 2,
-        "test/features/async_example.feature" => 2,
+        "test/features/advanced_features.feature" => 5,
+        "test/features/async_example.feature" => 1,
+        "test/features/attachments.feature" => 2,
         "test/features/custom_parameter_types.feature" => 2,
         "test/features/database_example.feature" => 2,
         "test/features/descriptions.feature" => 3,
-        "test/features/error_reporting.feature" => 2,
+        "test/features/error_reporting.feature" => 1,
+        "test/features/configuration.feature" => 1,
         "test/features/feature_level_tags.feature" => 2,
-        "test/features/global_hooks.feature" => 1,
-        "test/features/hook_execution_order.feature" => 1,
+        "test/features/gherkin_parse.feature" => 4,
+        "test/features/global_hooks.feature" => 2,
+        "test/features/hook_execution_order.feature" => 3,
+        "test/features/hook_outcomes.feature" => 8,
+        "test/features/install.feature" => 1,
         "test/features/markdown.feature.md" => 2,
-        "test/features/parameters.feature" => 4,
+        "test/features/messages_stream.feature" => 2,
+        "test/features/parameters.feature" => 10,
         "test/features/regex_steps.feature" => 2,
-        "test/features/retry.feature" => 1,
+        "test/features/retry.feature" => 4,
+        "test/features/runner_outcomes.feature" => 3,
         "test/features/return_values.feature" => 4,
-        "test/features/rules.feature" => 2,
+        "test/features/rules.feature" => 3,
         "test/features/scenario_outline.feature" => 2,
+        "test/features/selection.feature" => 1,
         "test/features/shared_steps_integration.feature" => 2,
-        "test/features/simple.feature" => 1,
-        "test/features/tagged.feature" => 4
+        "test/features/simple.feature" => 2,
+        "test/features/tagged.feature" => 4,
+        "test/features/verification.feature" => 8
       }
 
       # Every live feature file must have an entry, so a new file can't

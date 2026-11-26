@@ -2,24 +2,22 @@
 Feature: Tags demonstration
 
 @smoke
-Scenario: Smoke test scenario
+Scenario: a before hook for the smoke tag runs for a smoke scenario
   Given a simple smoke test
-  When I run with smoke tag filter
-  Then this scenario should run
+  Then the smoke tag hook has run
 
 @regression
-Scenario: Regression test scenario
+Scenario: a before hook for the regression tag runs for a regression scenario
   Given a regression test
-  When I run with regression tag filter
-  Then this scenario should run
+  Then the regression tag hook has run
 
 @smoke @regression
-Scenario: Multi-tagged scenario
+Scenario: both tag hooks run for a scenario with both tags
   Given a test with multiple tags
-  When I run with either smoke or regression tag filter
-  Then this scenario should run
+  Then the smoke tag hook has run
+  And the regression tag hook has run
 
-Scenario: Untagged scenario
+Scenario: tag hooks do not run for an untagged scenario
   Given an untagged test
-  When I run with tag filters
-  Then this scenario should not run
+  Then the smoke tag hook has not run
+  And the regression tag hook has not run

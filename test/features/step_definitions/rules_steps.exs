@@ -14,4 +14,9 @@ defmodule RulesSteps do
     assert context.ledger_total == expected
     :ok
   end
+
+  step "the rule tag hook has run", context do
+    assert context[:rule_hook] == true
+    context
+  end
 end
