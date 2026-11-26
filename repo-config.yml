@@ -813,6 +813,16 @@ gates:
         pull-request:
           reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
+    - id: mix-test-integration
+      type: check
+      command:
+        executable: mix
+        args:
+          - literal: test:integration
+      run-on:
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
+        main: {}
     - id: repo-config
       type: check
       command:

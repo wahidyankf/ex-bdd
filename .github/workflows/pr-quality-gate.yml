@@ -186,6 +186,8 @@ jobs:
 
       - run: mix validate
 
+      - run: mix test:integration
+
       - name: Verify pinned CCK provenance
         run: mix run scripts/check_cck.exs
         env:
