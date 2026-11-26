@@ -812,6 +812,9 @@ gates:
         executable: mix
         args:
           - literal: test
+          - literal: --cover
+          - literal: --exclude
+          - literal: integration
       run-on:
         pull-request:
           reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."

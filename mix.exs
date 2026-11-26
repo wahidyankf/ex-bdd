@@ -106,13 +106,13 @@ defmodule ExBdd.MixProject do
         "format",
         "credo --strict",
         "deps.unlock --unused",
-        "test"
+        "test --cover --exclude integration"
       ],
       "test:quick": [
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
-        "test --exclude integration"
+        "test --cover --exclude integration"
       ],
       "test:integration": ["test --include integration test/integration"],
       "test:e2e": ["test --include e2e test/e2e"],
@@ -123,7 +123,7 @@ defmodule ExBdd.MixProject do
         "format --check-formatted",
         "credo --strict",
         "deps.unlock --check-unused",
-        "test",
+        "test --cover --exclude integration",
         "cmd bash scripts/test_release.sh",
         "cmd env MIX_ENV=dev mix do hex.build + compile --warnings-as-errors + docs --warnings-as-errors"
       ]
