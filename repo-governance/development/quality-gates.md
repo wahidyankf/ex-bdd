@@ -25,9 +25,9 @@ Rule C6 sets the target placement below. The registry does not match it yet, and
 
 ## Targets
 
-The standard names are `test:quick`, `test:integration`, `test:e2e`, and `test:behaviour:coverage`. This repository runs
-`test:quick` as `mix test:quick`. It does not define the other three yet: it has no integration or end-to-end suite, and
-the behaviour-coverage check is not wired.
+The standard names are `test:quick`, `test:integration`, `test:e2e`, and `test:behaviour:coverage`. This repository
+defines the three that exist, and `test:integration` runs only when invoked by hand. It has no end-to-end suite, so
+`test:e2e` is undefined.
 
 ## The Test and Gate Contract
 
@@ -40,33 +40,33 @@ Module status, as [Conformance Record](quality/checks/test-and-gate-contract/007
 - **004 Test Levels and Targets: adapted, open.** C14, C18, and C21 are open.
 - **005 Behaviour Corpus: adapted, open.** C13 is open: the corpus lives in `test/features`, not `specs/behaviours/`.
 - **006 Coverage Floor: adapted, open.** C15 is open: the 99% unit floor is not met, and no cover tool is wired.
-- **007 Conformance Record: adapted, open.** C19 and C22 are open. C16, C20, C23, and C24 hold.
+- **007 Conformance Record: adapted, open.** C22 is open. C16, C19, C20, C23, and C24 hold.
 
 | Rule | Status         | Reason                                                             |
 | ---- | -------------- | ------------------------------------------------------------------ |
 | C1   | adopted        | `repo-config.yml` is the one registry, dispatched by `gate run`    |
-| C2   | open           | `gates.wiring` is undeclared, so `gate wiring validate` cannot run |
+| C2   | open           | `gates.wiring` is declared; `gate wiring validate` passes          |
 | C3   | open           | `npm ci` installs the hooks; no check fails when they are missing  |
-| C4   | open           | RHINO is pinned; hosted third-party actions use tags, not SHAs     |
+| C4   | open           | RHINO and HIPPO are pinned; hosted actions pin full commit SHAs    |
 | C5   | open           | no network-denied run is recorded as evidence                      |
-| C6   | open           | `pre-commit`, `pre-push`, and `main` hold checks C6 reserves       |
+| C6   | open           | `main` holds pull-request checks; the hooks hold only their own    |
 | C7   | adopted        | one project, so every check runs at global scope                   |
-| C8   | open           | one job named `quality` runs the checks, not parallel jobs         |
+| C8   | open           | parallel pull-request jobs under one `quality-gate` aggregate      |
 | C9   | not applicable | delivery is remote-backed pull requests (C20)                      |
-| C10  | open           | `commit-msg` runs only the safety scan, not a format lint          |
+| C10  | open           | `commit-msg` and `pull-request` run the commit-message lint        |
 | C11  | adopted        | `public-safety-range` runs at `pre-push` and in the pull request   |
-| C12  | adopted        | unit tests classify the only layer; no other layer exists          |
+| C12  | adopted        | unit and behaviour tests run in `mix test`; integration is ungated |
 | C13  | open           | the corpus is `test/features`; the binding check is not wired      |
-| C14  | open           | `test:behaviour:coverage` is undefined; the other two await layers |
+| C14  | open           | three targets are defined; `test:e2e` is not                       |
 | C15  | open           | the 99% unit floor is not met; no cover tool is wired              |
 | C16  | adopted        | `mix credo --strict` and warnings-as-errors compile run            |
 | C17  | adopted        | unit tests run on the pull request through `mix-test`              |
 | C18  | open           | no unconditional skip or focus ban is declared                     |
-| C19  | open           | no gate inventory table in the contributor documentation           |
+| C19  | adopted        | the `README.md` Gates table lists every registry entry             |
 | C20  | adopted        | worktree, pull request, squash merge, and cleanup (`AGENTS.md`)    |
 | C21  | open           | no mechanical ban on clock, file, network, or process use in units |
-| C22  | open           | the required check is `quality`; the ruleset is not recorded       |
-| C23  | adopted        | the `mermaid` validator runs in pre-commit and on the pull request |
+| C22  | open           | the required check is `quality-gate`; the ruleset is not recorded  |
+| C23  | adopted        | the `mermaid` validator runs on the pull request and `main`        |
 | C24  | adopted        | one product project; no practice code is declared                  |
 
 ## Ruleset

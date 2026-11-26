@@ -28,10 +28,11 @@ case between the run and the Messages emitter. `lib/mix/tasks/` holds the instal
 ./rhino gate run --surface pull-request --base <sha> --head <sha>  # the landing gate before a pull request
 ```
 
-`repo-config.yml` is the one gate registry. The husky hooks, the hosted `quality` workflow, and the aggregate command
-dispatch it through `./rhino gate run --surface <surface>`, so a gate added there reaches every surface it declares.
-Under the [Test and Gate Contract](repo-governance/development/quality/checks/test-and-gate-contract.md), `pre-push`
-runs only the leak scan, and `pull-request` holds every other check. The registry does not yet match that placement;
+`repo-config.yml` is the one gate registry. The husky hooks, the hosted `pr-quality-gate.yml` workflow, and the
+aggregate command dispatch it through `./rhino gate run --surface <surface>`, so a gate added there reaches every
+surface it declares. Under the
+[Test and Gate Contract](repo-governance/development/quality/checks/test-and-gate-contract.md), `pre-push` runs only the
+leak scan, and `pull-request` holds every other check. The registry does not yet match that placement;
 [Quality Gates](repo-governance/development/quality-gates.md) records each open gap.
 
 `./rhino` installs the RHINO release `rhino.lock` pins and verifies it before running; exit `125` is the wrapper
@@ -41,8 +42,8 @@ refusing. This repository pins RHINO and HIPPO: no FERRET. `./hippo` guards loca
 
 Work test-first under [Test-Driven Development](repo-governance/development/quality/testing/test-driven-development.md).
 The suite runs unit, behaviour (`test/ex_bdd/behavior/`), and pinned Compatibility Kit corpus layers through `mix test`.
-Dialyzer and coverage runners stay deferred, per the
-[repository adapter](repo-governance/development/quality/stacks/repository-adapter.md).
+Integration tests in `test/integration/` run through `mix test:integration`. Dialyzer and coverage runners stay
+deferred, per the [repository adapter](repo-governance/development/quality/stacks/repository-adapter.md).
 
 ## Tooling
 
@@ -55,7 +56,7 @@ installs it and the hooks.
 
 Every change starts in a task worktree at `worktrees/<task>`, never a sibling directory, and lands through a pull
 request merged by squash under [Pull Request Merge](repo-governance/development/workflow/pull-request-merge.md), once
-the `quality` check passes on its head. The [PR Leak Review](repo-governance/workflows/quality/pr-leak-review.md)
+the `quality-gate` check passes on its head. The [PR Leak Review](repo-governance/workflows/quality/pr-leak-review.md)
 harness refuses any push or merge without a fresh `leak-reviewer` pass on that head. Everything pushed is public, so
 commits, branch names, and pull-request text pass the `scripts/public-safety/` screen first. After the merge,
 [Dev Artifact Clean-Up](repo-governance/workflows/maintenance/dev-artifact-clean-up.md) removes the worktree and task
