@@ -383,4 +383,49 @@ defmodule ExBdd.MessagesTest do
       assert %{"id" => _, "text" => "a step", "type" => "Context", "astNodeIds" => [_]} = step
     end
   end
+
+  describe "pickle step types and argument shapes" do
+    test "an outcome step is typed Outcome and an unrecognised step Unknown" do
+      envelope =
+        """
+        Feature: outcomes
+          Scenario: typed steps
+            Given a start
+            Then a result
+            * a starred step
+        """
+        |> compile_pickle()
+        |> Messages.pickle()
+
+      assert %{pickle: %{steps: [%{type: "Context"}, %{type: "Outcome"}, %{type: "Unknown"}]}} =
+               envelope
+    end
+
+    test "a docstring without a media type carries its content only" do
+      envelope =
+        """
+        Feature: docs
+          Scenario: a document
+            Given a document
+              \"\"\"
+              hello
+              \"\"\"
+        """
+        |> compile_pickle()
+        |> Messages.pickle()
+
+      assert %{pickle: %{steps: [%{argument: argument}]}} = envelope
+      assert argument == %{docString: %{content: "hello"}}
+    end
+  end
+
+  defp compile_pickle(source) do
+    %{pickles: [pickle]} =
+      source
+      |> Parser.parse()
+      |> Map.put(:file, "features/demo.feature")
+      |> Pickles.compile()
+
+    pickle
+  end
 end

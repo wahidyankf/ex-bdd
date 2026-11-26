@@ -153,4 +153,119 @@ defmodule ExBdd.HooksTest do
                ExBdd.Hooks.collect_hooks([module])
     end
   end
+
+  defmodule NamedStepHooks do
+    use ExBdd.Hooks
+
+    before_step ctx, name: "prep" do
+      ctx
+    end
+
+    before_step "@wip", ctx, name: "tagged prep" do
+      ctx
+    end
+
+    after_step ctx, name: "tidy" do
+      ctx
+    end
+
+    after_step "@slow", ctx, name: "tagged tidy" do
+      ctx
+    end
+  end
+
+  defmodule OutcomeHooks do
+    def fail(_context), do: {:error, :boom}
+    def skip(_context), do: {:skipped, "not today"}
+    def merge(_context), do: %{merged: true}
+
+    def record(context) do
+      send(self(), {:ran, context})
+      :ok
+    end
+  end
+
+  describe "named before_step and after_step hooks" do
+    test "each hook records its type, optional tag, and name" do
+      assert [
+               {:before_step, nil, "prep", {NamedStepHooks, _}},
+               {:before_step, "@wip", "tagged prep", {NamedStepHooks, _}},
+               {:after_step, nil, "tidy", {NamedStepHooks, _}},
+               {:after_step, "@slow", "tagged tidy", {NamedStepHooks, _}}
+             ] = NamedStepHooks.__ex_bdd_hooks__()
+    end
+
+    test "a hook name that is not a non-empty string raises at compile time" do
+      assert_raise CompileError,
+                   ~r/Hook name for before_step must be a non-empty string, got: 123/,
+                   fn ->
+                     defmodule BadNamedHooks do
+                       use ExBdd.Hooks
+
+                       before_step ctx, name: 123 do
+                         ctx
+                       end
+                     end
+                   end
+    end
+
+    test "two hooks with the same name in one module raise at compile time" do
+      assert_raise CompileError,
+                   ~r/Duplicate hook: before_step_named_same already defined for name "same"/,
+                   fn ->
+                     defmodule DuplicateNamedHooks do
+                       use ExBdd.Hooks
+
+                       before_step ctx, name: "same" do
+                         ctx
+                       end
+
+                       before_step ctx, name: "same" do
+                         ctx
+                       end
+                     end
+                   end
+    end
+  end
+
+  describe "run_before_hooks/3 outcomes" do
+    test "an error stops the chain and names the failing hook" do
+      steps = [
+        %{name: "first", ref: {OutcomeHooks, :fail}},
+        %{name: "second", ref: {OutcomeHooks, :record}}
+      ]
+
+      assert {:error, :boom, "first"} = ExBdd.Hooks.run_before_hooks(steps, %{})
+      refute_received {:ran, _}
+    end
+
+    test "a skip with a reason halts the chain with that reason" do
+      steps = [
+        %{name: "skip", ref: {OutcomeHooks, :skip}},
+        %{name: "second", ref: {OutcomeHooks, :record}}
+      ]
+
+      assert {:halted, :skipped, "not today"} = ExBdd.Hooks.run_before_hooks(steps, %{})
+      refute_received {:ran, _}
+    end
+
+    test "a map result is merged into the context the next hook receives" do
+      steps = [
+        %{name: "merge", ref: {OutcomeHooks, :merge}},
+        %{name: "record", ref: {OutcomeHooks, :record}}
+      ]
+
+      assert {:ok, %{merged: true}} = ExBdd.Hooks.run_before_hooks(steps, %{})
+      assert_received {:ran, %{merged: true}}
+    end
+  end
+
+  describe "run_after_hooks/2" do
+    test "runs each hook with the context and ignores what it returns" do
+      steps = [%{name: "record", ref: {OutcomeHooks, :record}}]
+
+      assert :ok = ExBdd.Hooks.run_after_hooks(steps, %{value: 1})
+      assert_received {:ran, %{value: 1}}
+    end
+  end
 end

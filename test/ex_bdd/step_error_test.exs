@@ -179,4 +179,41 @@ defmodule ExBdd.StepErrorTest do
       assert error.message =~ "<button>Submit</button>"
     end
   end
+
+  describe "defaults and failure reasons" do
+    test "missing_step_definition/3 uses the step's own line when there is no history" do
+      step = %Step{keyword: "Given", text: "I have 5 apples", line: 10}
+
+      error = StepError.missing_step_definition(step, "fruit.feature", "Counting fruit")
+
+      assert error.message =~ "fruit.feature:11"
+    end
+
+    test "missing_step_definition/4 with a nil history falls back to the step's line" do
+      step = %Step{keyword: "Given", text: "I have 5 apples", line: 10}
+
+      error = StepError.missing_step_definition(step, "fruit.feature", "Counting fruit", nil)
+
+      assert error.message =~ "fruit.feature:11"
+    end
+
+    test "failed_step/5 reports an exception without a message field by its message" do
+      step = %Step{keyword: "Then", text: "the total is 10", line: 4}
+      reason = %ExBdd.VerificationError{errors: ["unbound step"]}
+
+      error = StepError.failed_step(step, "the total is {int}", reason, "fruit.feature", "Total")
+
+      assert error.message =~ "unbound step"
+      assert error.failure_reason == reason
+    end
+
+    test "failed_step/5 reports a non-string reason with inspect" do
+      step = %Step{keyword: "Then", text: "the total is 10", line: 4}
+
+      error =
+        StepError.failed_step(step, "the total is {int}", {:bad, 1}, "fruit.feature", "Total")
+
+      assert error.message =~ "{:bad, 1}"
+    end
+  end
 end

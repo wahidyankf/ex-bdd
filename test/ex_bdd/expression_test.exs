@@ -485,4 +485,34 @@ defmodule ExBdd.ExpressionTest do
       end
     end
   end
+
+  describe "count_capture_groups/1" do
+    test "counts named, single-quoted named, and Python-style named groups" do
+      assert Expression.count_capture_groups("(?<name>a)(?'other'b)(?P<third>c)") == 3
+    end
+
+    test "does not count lookbehind, lookahead, or non-capturing groups" do
+      assert Expression.count_capture_groups("(?<=a)(?<!b)(?=c)(?:d)") == 0
+    end
+
+    test "counts plain groups and ignores parentheses in classes and escapes" do
+      assert Expression.count_capture_groups("(a)[(]\\(") == 1
+    end
+  end
+
+  describe "match/2 with a required parameter left over" do
+    test "fails when the text ends before the parameter" do
+      compiled = Expression.compile("I have {int} items")
+
+      assert Expression.match("I have ", compiled) == :no_match
+    end
+  end
+
+  describe "compile/1 with a malformed expression" do
+    test "raises when the expression cannot be parsed" do
+      assert_raise RuntimeError, ~r/Failed to parse expression/, fn ->
+        Expression.compile("I have {int")
+      end
+    end
+  end
 end

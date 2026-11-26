@@ -128,4 +128,65 @@ defmodule ExBdd.RuntimeErrorTest do
       assert error.message =~ "[failed] When I click the submit button"
     end
   end
+
+  defmodule FakeAssertionError do
+    defexception [:message]
+  end
+
+  defmodule AssertionSteps do
+    use ExBdd.StepDefinition
+
+    step "the page shows buttons", _context do
+      raise ExUnit.AssertionError,
+        message:
+          "Could not find any elements\n\nFound these elements:\n<button>\n  Save\n\n<a href=\"#\">Link</a>"
+    end
+
+    step "the page shows a named assertion", _context do
+      raise FakeAssertionError,
+        message:
+          "Could not find any elements\n\nFound these elements:\n<button>\n  Save\n</button>"
+    end
+  end
+
+  describe "assertion errors that list HTML elements" do
+    test "an ExUnit assertion lists each element and keeps the text before the list" do
+      step_registry = ExBdd.StepRegistry.new([AssertionSteps])
+      step = %Step{keyword: "Then", text: "the page shows buttons", line: 3}
+
+      context = %{
+        feature_file: "test/features/buttons.feature",
+        scenario_name: "Buttons",
+        step_history: []
+      }
+
+      error =
+        assert_raise ExBdd.StepError, fn ->
+          Runtime.execute_step(context, step, step_registry)
+        end
+
+      assert error.message =~ "Could not find any elements"
+      assert error.message =~ "Found these elements"
+      assert error.message =~ "  <button>"
+      assert error.message =~ "  <a href=\"#\">Link</a>"
+    end
+
+    test "a module named like an assertion error is formatted the same way" do
+      step_registry = ExBdd.StepRegistry.new([AssertionSteps])
+      step = %Step{keyword: "Then", text: "the page shows a named assertion", line: 4}
+
+      context = %{
+        feature_file: "test/features/buttons.feature",
+        scenario_name: "Buttons",
+        step_history: []
+      }
+
+      error =
+        assert_raise ExBdd.StepError, fn ->
+          Runtime.execute_step(context, step, step_registry)
+        end
+
+      assert error.message =~ "  <button>"
+    end
+  end
 end

@@ -21,6 +21,14 @@ defmodule ExBdd.MixProject do
       test_ignore_filters: [
         ~r/features\/step_definitions/,
         ~r/features\/support/
+      ],
+      # Unit coverage floor (99%, meaningful-coverage). The only exclusion is the test-support category:
+      # harness modules under test/support/ are test code, not shipped behaviour. No lib/ module is excluded.
+      test_coverage: [
+        summary: [threshold: 99],
+        ignore_modules: [
+          ~r/^ExBdd\.(BehaviorCase|CckApproval|CckFixtures|CckSchema|CckStream|CorpusFixtures|ReloadableHooks)(\.|$)/
+        ]
       ]
     ]
   end
