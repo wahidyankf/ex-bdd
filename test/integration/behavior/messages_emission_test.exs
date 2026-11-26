@@ -263,6 +263,8 @@ defmodule ExBdd.Behavior.MessagesEmissionTest do
 
   # --- Tests ---
 
+  # @scenario specs/behaviours/messages_stream.feature: ExBdd.Messages builders produce Cucumber Messages envelopes
+  # @scenario specs/behaviours/simple.feature: Runs a simple step
   test "a passing run emits the full stream in order" do
     run =
       run_messages(
@@ -372,6 +374,8 @@ defmodule ExBdd.Behavior.MessagesEmissionTest do
     assert run_finished["success"] == false
   end
 
+  # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+  # @scenario specs/behaviours/runner_outcomes.feature: A step that returns pending fails its scenario and skips the rest
   test "pending and skipped signals carry their statuses" do
     run =
       run_messages(
@@ -495,6 +499,8 @@ defmodule ExBdd.Behavior.MessagesEmissionTest do
     assert {"a step nobody defined", "UNDEFINED"} in finished_steps(run.messages)
   end
 
+  # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+  # @scenario specs/behaviours/hook_outcomes.feature: An after_all that raises fails the run after every after_all hook ran
   test "a failing after_all hook fails the run in testRunFinished even when every scenario passed" do
     path =
       Path.join(
@@ -534,6 +540,9 @@ defmodule ExBdd.Behavior.MessagesEmissionTest do
     assert run_finished["success"] == false
   end
 
+  # @scenario specs/behaviours/runner_outcomes.feature: A missing or an ambiguous step fails the run with its location
+  # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+  # @scenario specs/behaviours/retry.feature: Undefined, ambiguous, and pending scenarios are not retried under a config limit
   test "undefined and ambiguous steps get their statuses and definition ids" do
     run =
       run_messages(
@@ -1104,6 +1113,7 @@ defmodule ExBdd.Behavior.MessagesEmissionTest do
     assert Enum.uniq(ids) == ids
   end
 
+  # @scenario specs/behaviours/messages_stream.feature: config messages writes the Cucumber Messages stream
   test "config :ex_bdd, :messages enables the sink through compile_features!" do
     path =
       Path.join(

@@ -29,6 +29,7 @@ defmodule ExBdd.Messages.EmitterUnitTest do
   end
 
   describe "configure/6 (deprecated)" do
+    # @scenario specs/behaviours/messages_stream.feature: config messages writes the Cucumber Messages stream
     test "still configures the sink, ignoring the parameter types argument" do
       registry = StepRegistry.new([])
 

@@ -85,6 +85,7 @@ defmodule ExBdd.RulesBehaviorTest do
   end
 
   describe "CCK: rules" do
+    # @scenario specs/behaviours/rules.feature: only the feature background applies
     test "scenarios in rules execute with reference outcomes" do
       run = run_feature(fixture("rules"), steps: [ChocolateSteps])
 
@@ -169,6 +170,7 @@ defmodule ExBdd.RulesBehaviorTest do
       refute {:marker, "unreachable"} in run.events
     end
 
+    # @scenario specs/behaviours/rules.feature: a scenario inherits the rule tag
     test "rule tags are filterable ExUnit tags on the generated tests" do
       run =
         run_feature(

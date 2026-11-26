@@ -157,6 +157,7 @@ defmodule GherkinDescriptionsTest do
       assert [%ExBdd.Gherkin.Step{text: "a real step"}] = scenario.steps
     end
 
+    # @scenario specs/behaviours/descriptions.feature: outlines can be described as well
     test "scenario outline and examples descriptions are captured" do
       feature =
         Parser.parse("""
@@ -208,6 +209,7 @@ defmodule GherkinDescriptionsTest do
   end
 
   describe "docstring delimiters and media types" do
+    # @scenario specs/behaviours/advanced_features.feature: Use docstring in a step
     test "backtick docstrings deliver the same content as triple quotes" do
       standard =
         Parser.parse("""
@@ -238,6 +240,7 @@ defmodule GherkinDescriptionsTest do
       assert backtick_step.docstring == standard_step.docstring
     end
 
+    # @scenario specs/behaviours/descriptions.feature: backtick docstring with a media type
     test "media type is captured for both delimiters and nil when absent" do
       feature =
         Parser.parse("""
@@ -285,6 +288,7 @@ defmodule GherkinDescriptionsTest do
       assert second.docstring == ~s(triple quote: """)
     end
 
+    # @scenario specs/behaviours/descriptions.feature: standard docstring under a described scenario
     test "backtick docstrings dedent the same way as standard ones" do
       feature =
         Parser.parse("""

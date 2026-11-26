@@ -99,6 +99,7 @@ defmodule ExBdd.BehaviorCaseTest do
   end
 
   describe "run_feature/2 outcome reporting" do
+    # @scenario specs/behaviours/simple.feature: Runs a simple step
     test "a passing scenario reports passed" do
       run =
         run_feature(
@@ -174,6 +175,10 @@ defmodule ExBdd.BehaviorCaseTest do
   end
 
   describe "step return values" do
+    # @scenario specs/behaviours/return_values.feature: Return keyword list
+    # @scenario specs/behaviours/return_values.feature: Return {:ok, map} tuple
+    # @scenario specs/behaviours/return_values.feature: Return an :ok atom
+    # @scenario specs/behaviours/return_values.feature: Return a map directly
     test ":ok, map, keyword list, and {:ok, map} all merge into context" do
       run =
         run_feature(
@@ -240,6 +245,7 @@ defmodule ExBdd.BehaviorCaseTest do
       assert run.events == [{:args, 42, "fresh"}]
     end
 
+    # @scenario specs/behaviours/advanced_features.feature: Use data table in a step
     test "datatables arrive in context.datatable" do
       run =
         run_feature(
@@ -257,6 +263,7 @@ defmodule ExBdd.BehaviorCaseTest do
       assert run.events == [{:datatable, [["a", "b"], ["1", "2"]]}]
     end
 
+    # @scenario specs/behaviours/advanced_features.feature: Use docstring in a step
     test "docstrings arrive in context.docstring" do
       run =
         run_feature(
@@ -278,6 +285,8 @@ defmodule ExBdd.BehaviorCaseTest do
   end
 
   describe "descriptions" do
+    # @scenario specs/behaviours/descriptions.feature: outlines can be described as well
+    # @scenario specs/behaviours/descriptions.feature: standard docstring under a described scenario
     test "scenarios with descriptions at every level execute their steps normally" do
       run =
         run_feature(
@@ -304,6 +313,7 @@ defmodule ExBdd.BehaviorCaseTest do
   end
 
   describe "undefined steps" do
+    # @scenario specs/behaviours/runner_outcomes.feature: A missing or an ambiguous step fails the run with its location
     test "an undefined step fails with a definition suggestion" do
       run =
         run_feature(
@@ -322,6 +332,7 @@ defmodule ExBdd.BehaviorCaseTest do
   end
 
   describe "scenario outlines" do
+    # @scenario specs/behaviours/scenario_outline.feature: Adding numbers
     test "each examples row runs as its own scenario" do
       run =
         run_feature(
@@ -361,6 +372,14 @@ defmodule ExBdd.BehaviorCaseTest do
       assert run.events == [:before_hook, :passing_step, :after_hook]
     end
 
+    # @scenario specs/behaviours/tagged.feature: tag hooks do not run for an untagged scenario
+    # @scenario specs/behaviours/tagged.feature: both tag hooks run for a scenario with both tags
+    # @scenario specs/behaviours/tagged.feature: a before hook for the regression tag runs for a regression scenario
+    # @scenario specs/behaviours/tagged.feature: a before hook for the smoke tag runs for a smoke scenario
+    # @scenario specs/behaviours/feature_level_tags.feature: Second scenario with additional tag
+    # @scenario specs/behaviours/feature_level_tags.feature: First scenario uses database
+    # @scenario specs/behaviours/database_example.feature: With database tag
+    # @scenario specs/behaviours/database_example.feature: Without database tag
     test "tagged before hooks only fire for scenarios carrying the tag" do
       untagged =
         run_feature(

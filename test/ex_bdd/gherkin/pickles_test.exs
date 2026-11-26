@@ -95,6 +95,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "backgrounds" do
+    # @scenario specs/behaviours/rules.feature: both backgrounds apply
     test "feature background steps come first and are marked; rule backgrounds are not" do
       %{pickles: [pickle]} =
         compile("""
@@ -196,6 +197,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "scenario outlines" do
+    # @scenario specs/behaviours/advanced_features.feature: Placeholders fill a docstring and a data table
     test "one pickle per examples row, across blocks, with substitution everywhere" do
       %{document: document, pickles: pickles} =
         compile("""
@@ -331,6 +333,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "tags" do
+    # @scenario specs/behaviours/scenario_outline.feature: Tagged example
     test "pickle tags collect every level with document references" do
       %{document: document, pickles: [pickle]} =
         compile("""

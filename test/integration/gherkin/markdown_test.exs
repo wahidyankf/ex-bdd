@@ -5,6 +5,7 @@ defmodule ExBdd.Gherkin.MarkdownTest do
   alias ExBdd.Gherkin.{Markdown, Parser}
 
   describe "parse/2 dispatch" do
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reads a feature.md path as Markdown
     test ".feature.md paths parse as Markdown, others as plain Gherkin" do
       markdown = "# Feature: MD\n\n## Scenario: s\n\n* Given a step\n"
       plain = "Feature: Plain\n\nScenario: s\n  Given a step\n"

@@ -78,6 +78,8 @@ defmodule ExBdd.RunnerLifecycleTest do
   end
 
   describe "hook ordering" do
+    # @scenario specs/behaviours/hook_outcomes.feature: After hooks run after the steps, in reverse order
+    # @scenario specs/behaviours/hook_execution_order.feature: Verify execution order
     test "before hooks run in definition order, after hooks in reverse" do
       run =
         run_feature(
@@ -138,6 +140,7 @@ defmodule ExBdd.RunnerLifecycleTest do
   end
 
   describe "before hook errors" do
+    # @scenario specs/behaviours/runner_outcomes.feature: A step that returns an error fails its scenario
     test "{:error, reason} fails the scenario without running steps or after hooks" do
       run =
         run_feature(

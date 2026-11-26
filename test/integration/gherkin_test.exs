@@ -84,6 +84,8 @@ defmodule ExBdd.Gherkin.ParserTest do
       assert Parser.parse(gherkin) == expected
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reads the feature name, tags, and scenarios of a feature text
     test "parses a feature file with multiple scenarios" do
       gherkin = """
       Feature: Multiple scenarios
@@ -161,6 +163,7 @@ defmodule ExBdd.Gherkin.ParserTest do
   end
 
   describe "parse/1 with Scenario Outlines" do
+    # @scenario specs/behaviours/scenario_outline.feature: Adding numbers
     test "parses a simple scenario outline with one Examples block" do
       gherkin = """
       Feature: Calculator
@@ -245,6 +248,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       assert ex2.table_body == [["-1", "-2", "-3"]]
     end
 
+    # @scenario specs/behaviours/scenario_outline.feature: Tagged example
     test "parses scenario outline with tagged Examples blocks" do
       gherkin = """
       Feature: Calculator
@@ -305,6 +309,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       assert outline.name == "Outline scenario"
     end
 
+    # @scenario specs/behaviours/advanced_features.feature: Placeholders fill a docstring and a data table
     test "parses scenario outline with docstring containing placeholder" do
       gherkin = """
       Feature: Templates
@@ -328,6 +333,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       assert step.docstring == "Hello <name>!"
     end
 
+    # @scenario specs/behaviours/advanced_features.feature: Use data table in a step
     test "parses scenario outline with datatable containing placeholder" do
       gherkin = """
       Feature: Tables
@@ -487,39 +493,42 @@ defmodule ExBdd.Gherkin.ParserTest do
       # This test ensures all feature files are fully parsed
       # If parsing fails silently, this test will catch it
       expected_counts = %{
-        "test/features/advanced_features.feature" => 5,
-        "test/features/async_example.feature" => 1,
-        "test/features/attachments.feature" => 2,
-        "test/features/custom_parameter_types.feature" => 2,
-        "test/features/database_example.feature" => 2,
-        "test/features/descriptions.feature" => 3,
-        "test/features/error_reporting.feature" => 1,
-        "test/features/configuration.feature" => 1,
-        "test/features/feature_level_tags.feature" => 2,
-        "test/features/gherkin_parse.feature" => 4,
-        "test/features/global_hooks.feature" => 2,
-        "test/features/hook_execution_order.feature" => 3,
-        "test/features/hook_outcomes.feature" => 8,
-        "test/features/install.feature" => 1,
-        "test/features/markdown.feature.md" => 2,
-        "test/features/messages_stream.feature" => 2,
-        "test/features/parameters.feature" => 10,
-        "test/features/regex_steps.feature" => 2,
-        "test/features/retry.feature" => 4,
-        "test/features/runner_outcomes.feature" => 3,
-        "test/features/return_values.feature" => 4,
-        "test/features/rules.feature" => 3,
-        "test/features/scenario_outline.feature" => 2,
-        "test/features/selection.feature" => 1,
-        "test/features/shared_steps_integration.feature" => 2,
-        "test/features/simple.feature" => 2,
-        "test/features/tagged.feature" => 4,
-        "test/features/verification.feature" => 8
+        "specs/behaviours/advanced_features.feature" => 5,
+        "specs/behaviours/async_example.feature" => 1,
+        "specs/behaviours/attachments.feature" => 2,
+        "specs/behaviours/custom_parameter_types.feature" => 2,
+        "specs/behaviours/database_example.feature" => 2,
+        "specs/behaviours/descriptions.feature" => 3,
+        "specs/behaviours/error_reporting.feature" => 1,
+        "specs/behaviours/configuration.feature" => 1,
+        "specs/behaviours/feature_level_tags.feature" => 2,
+        "specs/behaviours/gherkin_parse.feature" => 4,
+        "specs/behaviours/global_hooks.feature" => 2,
+        "specs/behaviours/hook_execution_order.feature" => 3,
+        "specs/behaviours/hook_outcomes.feature" => 8,
+        "specs/behaviours/install.feature" => 1,
+        "test/fixtures/markdown/markdown.feature.md" => 2,
+        "specs/behaviours/messages_stream.feature" => 2,
+        "specs/behaviours/parameters.feature" => 10,
+        "specs/behaviours/regex_steps.feature" => 2,
+        "specs/behaviours/retry.feature" => 4,
+        "specs/behaviours/runner_outcomes.feature" => 3,
+        "specs/behaviours/return_values.feature" => 4,
+        "specs/behaviours/rules.feature" => 3,
+        "specs/behaviours/scenario_outline.feature" => 2,
+        "specs/behaviours/selection.feature" => 1,
+        "specs/behaviours/shared_steps_integration.feature" => 2,
+        "specs/behaviours/simple.feature" => 2,
+        "specs/behaviours/tagged.feature" => 4,
+        "specs/behaviours/verification.feature" => 8,
+        "specs/behaviours/markdown_feature_files.feature" => 1
       }
 
       # Every live feature file must have an entry, so a new file can't
       # silently skip this check.
-      assert Path.wildcard("test/features/**/*.feature{,.md}") |> Enum.sort() ==
+      assert (Path.wildcard("specs/behaviours/**/*.feature") ++
+                Path.wildcard("test/fixtures/markdown/*.feature.md"))
+             |> Enum.sort() ==
                expected_counts |> Map.keys() |> Enum.sort()
 
       for {file, expected_count} <- expected_counts do
@@ -892,6 +901,7 @@ defmodule ExBdd.Gherkin.ParserTest do
       assert error.line == 8
     end
 
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reports a malformed table row with its path and line
     test "a ragged table row parse error reports its true line" do
       gherkin = """
 
@@ -925,6 +935,7 @@ defmodule ExBdd.Gherkin.ParserTest do
   end
 
   describe "parse/1 empty data table cells" do
+    # @scenario specs/behaviours/advanced_features.feature: A blank table cell arrives as an empty string
     test "keeps an empty cell in its column" do
       gherkin = """
       Feature: Tables

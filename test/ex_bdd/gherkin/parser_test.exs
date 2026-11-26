@@ -65,4 +65,36 @@ defmodule ExBdd.Gherkin.ParserUnitTest do
       assert [%{name: ""}] = feature.scenarios
     end
   end
+
+  describe "feature names, tags, and the Markdown extension" do
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reads the feature name, tags, and scenarios of a feature text
+    test "parse reads the feature name, tags, and scenarios of a feature text" do
+      feature =
+        Parser.parse("""
+        @parsed
+        Feature: Parsed feature
+          Scenario: first
+            Given a step
+          Scenario: second
+            Given another step
+        """)
+
+      assert feature.name == "Parsed feature"
+      assert feature.tags == ["parsed"]
+      assert Enum.map(feature.scenarios, & &1.name) == ["first", "second"]
+    end
+
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reads a feature.md path as Markdown
+    test "parse reads a feature.md path as Markdown" do
+      feature =
+        Parser.parse(
+          "# Feature: Markdown parsed\n\n## Scenario: a heading scenario\n\n* Given a bullet step\n",
+          "parsed.feature.md"
+        )
+
+      assert feature.name == "Markdown parsed"
+      assert Enum.map(feature.scenarios, & &1.name) == ["a heading scenario"]
+    end
+  end
 end

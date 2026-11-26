@@ -63,6 +63,7 @@ defmodule ExBdd.HooksTest do
   end
 
   describe "hook filtering and execution" do
+    # @scenario specs/behaviours/hook_execution_order.feature: A global before-scenario hook runs for every scenario
     test "filter_hooks returns global hooks and hooks matching tags" do
       defmodule FilterTestModule do
         def global_hook(context), do: {:ok, context}
@@ -89,6 +90,7 @@ defmodule ExBdd.HooksTest do
       assert length(filtered_empty) == 1
     end
 
+    # @scenario specs/behaviours/hook_execution_order.feature: Named hooks of the same kind all run
     test "run_before_hooks runs the given hook steps in order, threading the context" do
       defmodule RunTestModule do
         def hook_a(context), do: {:ok, Map.put(context, :order, [:a])}
@@ -239,6 +241,7 @@ defmodule ExBdd.HooksTest do
       refute_received {:ran, _}
     end
 
+    # @scenario specs/behaviours/hook_outcomes.feature: A before hook that returns skipped leaves the steps unrun
     test "a skip with a reason halts the chain with that reason" do
       steps = [
         %{name: "skip", ref: {OutcomeHooks, :skip}},

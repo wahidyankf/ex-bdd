@@ -130,6 +130,8 @@ defmodule ExBdd.HookExpansionTest do
       end
     end
 
+    # @scenario specs/behaviours/hook_outcomes.feature: After hooks run after the steps, in reverse order
+    # @scenario specs/behaviours/hook_execution_order.feature: Verify execution order
     test "global hooks bracket the run; AfterAll runs in reverse order" do
       run = run_feature(fixture("global-hooks"), steps: [Steps], hooks: [GlobalHooks])
 
@@ -145,6 +147,7 @@ defmodule ExBdd.HookExpansionTest do
       assert count(run.events, :after_all_one) == 1
     end
 
+    # @scenario specs/behaviours/global_hooks.feature: run-level context reaches every scenario
     test "BeforeAll runs exactly once across multiple feature modules" do
       run =
         run_features(
@@ -283,6 +286,8 @@ defmodule ExBdd.HookExpansionTest do
       end
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/hook_outcomes.feature: A before_all that returns an error fails every scenario in the run
     test "a BeforeAll failure fails every scenario; remaining global hooks still run" do
       run =
         run_feature(fixture("global-hooks-beforeall-error"),
@@ -414,6 +419,8 @@ defmodule ExBdd.HookExpansionTest do
              ]
     end
 
+    # @scenario specs/behaviours/hook_outcomes.feature: The after_step hook sees failed, pending, and skipped steps
+    # @scenario specs/behaviours/hook_outcomes.feature: A step that returns skipped ends its scenario without failing
     test "after_step sees :skipped and :pending statuses" do
       defmodule SignalSteps do
         use ExBdd.StepDefinition
@@ -446,6 +453,9 @@ defmodule ExBdd.HookExpansionTest do
       assert {:after_step, "a pending step", :pending} in run.events
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/hook_outcomes.feature: A before hook that returns pending or an error fails its scenario
+    # @scenario specs/behaviours/global_hooks.feature: a before-step hook runs before each step of a tagged scenario
     test "a failing before_step hook fails the scenario and skips the step body" do
       defmodule FailingBeforeStepHooks do
         use ExBdd.Hooks
@@ -473,6 +483,7 @@ defmodule ExBdd.HookExpansionTest do
       refute :step_passed in run.events
     end
 
+    # @scenario specs/behaviours/hook_outcomes.feature: A before hook that returns skipped leaves the steps unrun
     test "a :skipped signal from a before_step hook skips the rest of the scenario" do
       defmodule SkippingBeforeStepHooks do
         use ExBdd.Hooks
@@ -576,6 +587,7 @@ defmodule ExBdd.HookExpansionTest do
       assert run.output =~ "connection refused"
     end
 
+    # @scenario specs/behaviours/hook_execution_order.feature: Named hooks of the same kind all run
     test "names allow several hooks of the same kind in one module" do
       defmodule MultipleNamedHooks do
         use ExBdd.Hooks
@@ -630,6 +642,14 @@ defmodule ExBdd.HookExpansionTest do
       end
     end
 
+    # @scenario specs/behaviours/tagged.feature: tag hooks do not run for an untagged scenario
+    # @scenario specs/behaviours/tagged.feature: both tag hooks run for a scenario with both tags
+    # @scenario specs/behaviours/tagged.feature: a before hook for the regression tag runs for a regression scenario
+    # @scenario specs/behaviours/tagged.feature: a before hook for the smoke tag runs for a smoke scenario
+    # @scenario specs/behaviours/feature_level_tags.feature: Second scenario with additional tag
+    # @scenario specs/behaviours/feature_level_tags.feature: First scenario uses database
+    # @scenario specs/behaviours/database_example.feature: With database tag
+    # @scenario specs/behaviours/database_example.feature: Without database tag
     test "tagged hooks fail only their matching scenarios" do
       run = run_feature(fixture("hooks-conditional"), steps: [Steps], hooks: [ConditionalHooks])
 

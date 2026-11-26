@@ -627,18 +627,21 @@ policies:
         - family: docs
         - family: pr-review
   behaviour:
-    # The framework's own behaviour corpus stays under test/features until the move to specs/behaviours/ (D19, T8).
+    # The framework's own behaviour corpus lives under specs/behaviours (D19, T8). Its step definitions and support
+    # modules stay under test/features, where the discovery defaults already load them.
     corpus:
-      - test/features
+      - specs/behaviours
     fixtures:
       - test/fixtures
+      - test/fixtures/markdown/markdown.feature.md
     levels:
       unit:
         - test/ex_bdd/**/*_test.exs
         - test/features/**
       integration:
         - test/integration/**/*_test.exs
-      e2e: []
+      e2e:
+        - test/e2e/**/*_test.exs
 
 gates:
   composition:
@@ -822,6 +825,26 @@ gates:
       run-on:
         pull-request:
           reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
+        main: {}
+    - id: behaviour-coverage
+      type: check
+      command:
+        executable: ./rhino
+        args:
+          - literal: behaviour
+          - literal: coverage
+          - literal: validate
+      run-on:
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
+        main: {}
+    - id: test-e2e
+      type: check
+      command:
+        executable: mix
+        args:
+          - literal: test:e2e
+      run-on:
         main: {}
     - id: repo-config
       type: check

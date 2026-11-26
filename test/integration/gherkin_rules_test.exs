@@ -5,6 +5,7 @@ defmodule GherkinRulesTest do
   alias ExBdd.Gherkin.Parser
 
   describe "Rule parsing" do
+    # @scenario specs/behaviours/rules.feature: a scenario inherits the rule tag
     test "a rule groups its scenarios with name, description, and tags" do
       feature =
         Parser.parse("""
@@ -57,6 +58,7 @@ defmodule GherkinRulesTest do
       assert [%ExBdd.Gherkin.Examples{table_body: [["a"]]}] = outline.examples
     end
 
+    # @scenario specs/behaviours/rules.feature: only the feature background applies
     test "rules can have their own background" do
       feature =
         Parser.parse("""
@@ -78,6 +80,7 @@ defmodule GherkinRulesTest do
       assert [%ExBdd.Gherkin.Step{text: "a rule-level order"}] = rule.background.steps
     end
 
+    # @scenario specs/behaviours/rules.feature: both backgrounds apply
     test "a rule may have an empty name (CCK rules-backgrounds shape)" do
       feature =
         Parser.parse("""

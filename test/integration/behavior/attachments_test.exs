@@ -124,6 +124,7 @@ defmodule ExBdd.AttachmentsTest do
   end
 
   describe "attribution" do
+    # @scenario specs/behaviours/attachments.feature: Attachments show on failure and in the NDJSON stream
     test "attachments record the step that attached them" do
       run =
         run_feature(
@@ -290,6 +291,7 @@ defmodule ExBdd.AttachmentsTest do
   end
 
   describe "composability" do
+    # @scenario specs/behaviours/attachments.feature: attach, log, and link return the context unchanged
     test "attach returns the context unchanged so any return style works" do
       defmodule ComposingSteps do
         use ExBdd.StepDefinition

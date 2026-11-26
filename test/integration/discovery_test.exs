@@ -122,6 +122,8 @@ defmodule ExBdd.DiscoveryTest do
       end
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/markdown_feature_files.feature: feature files written in Markdown are discovered and their scenarios run like plain ones
     test "discovers Markdown feature files alongside plain ones, each with its own parser" do
       temp_dir = Path.join(System.tmp_dir(), "md_feature_#{:rand.uniform(10_000)}")
       File.mkdir_p!(temp_dir)
@@ -189,6 +191,8 @@ defmodule ExBdd.DiscoveryTest do
       end
     end
 
+    # @scenario specs/behaviours/shared_steps_integration.feature: Shared steps with different parameters
+    # @scenario specs/behaviours/shared_steps_integration.feature: Using shared authentication steps
     test "combines steps from multiple modules" do
       temp_dir = Path.join(System.tmp_dir(), "multi_module_#{:rand.uniform(10_000)}")
       step_dir = Path.join(temp_dir, "steps")
@@ -566,5 +570,52 @@ defmodule ExBdd.DiscoveryTest do
         File.rm_rf(temp_dir)
       end
     end
+  end
+
+  describe "config keys set the discovery paths" do
+    # @scenario specs/behaviours/configuration.feature: config features, steps, and support set the discovery paths
+    test "config features, steps, and support set the discovery paths" do
+      temp_dir = Path.join(System.tmp_dir(), "config_discover_#{:rand.uniform(10_000)}")
+      File.mkdir_p!(temp_dir)
+      feature = Path.join(temp_dir, "configured.feature")
+      steps = Path.join(temp_dir, "configured_steps.exs")
+      support = Path.join(temp_dir, "configured_support.exs")
+
+      File.write!(
+        feature,
+        "Feature: Configured on disk\n  Scenario: a configured scenario\n    Given a configured step\n"
+      )
+
+      File.write!(
+        steps,
+        "defmodule ExBdd.Integration.ConfiguredSteps do\n  use ExBdd.StepDefinition\n\n  step \"a configured step\", _context do\n    :ok\n  end\nend\n"
+      )
+
+      File.write!(
+        support,
+        "defmodule ExBdd.Integration.ConfiguredHooks do\n  use ExBdd.Hooks\n\n  before_scenario _context do\n    :ok\n  end\nend\n"
+      )
+
+      keys = [:features, :steps, :support]
+      previous = Map.new(keys, &{&1, Application.get_env(:ex_bdd, &1)})
+      Application.put_env(:ex_bdd, :features, [feature])
+      Application.put_env(:ex_bdd, :steps, [steps])
+      Application.put_env(:ex_bdd, :support, [support])
+
+      try do
+        result = Discovery.discover()
+
+        assert [configured] = result.features
+        assert configured.name == "Configured on disk"
+        assert Module.concat(["ExBdd", "Integration", "ConfiguredSteps"]) in result.step_modules
+        assert Module.concat(["ExBdd", "Integration", "ConfiguredHooks"]) in result.hook_modules
+      after
+        Enum.each(previous, &restore_env/1)
+        File.rm_rf(temp_dir)
+      end
+    end
+
+    defp restore_env({key, nil}), do: Application.delete_env(:ex_bdd, key)
+    defp restore_env({key, value}), do: Application.put_env(:ex_bdd, key, value)
   end
 end

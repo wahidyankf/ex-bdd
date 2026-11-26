@@ -234,6 +234,7 @@ defmodule ExBdd.MessagesTest do
   end
 
   describe "run and test case envelopes" do
+    # @scenario specs/behaviours/messages_stream.feature: ExBdd.Messages builders produce Cucumber Messages envelopes
     test "testRunStarted and testRunFinished reference each other" do
       ts = Messages.timestamp(0)
 

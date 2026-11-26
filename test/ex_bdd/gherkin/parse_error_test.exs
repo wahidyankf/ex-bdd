@@ -10,6 +10,7 @@ defmodule ExBdd.Gherkin.ParseErrorTest do
       assert ParseError.message(error) =~ "Gherkin parse error at line 3, column 5:"
     end
 
+    # @scenario specs/behaviours/gherkin_parse.feature: parse reports a malformed table row with its path and line
     test "locates an error with a file by path, line, and column" do
       error = %ParseError{message: "a step", line: 3, column: 5, rest: nil, file: "a.feature"}
 

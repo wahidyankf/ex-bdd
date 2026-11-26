@@ -322,6 +322,7 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
   end
 
   describe "CCK: parameter-types" do
+    # @scenario specs/behaviours/custom_parameter_types.feature: a transformed route parameter
     test "a custom type transforms capture groups into a domain value" do
       run =
         run_feature(
@@ -336,6 +337,7 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
   end
 
   describe "CCK: unknown-parameter-type" do
+    # @scenario specs/behaviours/parameters.feature: A step with an unregistered parameter type is reported undefined
     test "a step using an unregistered type is undefined, with a suggestion" do
       {run, warning_output} =
         ExUnit.CaptureIO.with_io(:stderr, fn ->
@@ -356,6 +358,8 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
   end
 
   describe "custom parameter type semantics" do
+    # @scenario specs/behaviours/parameters.feature: A custom parameter type without capture groups gets the whole match
+    # @scenario specs/behaviours/custom_parameter_types.feature: an untransformed enum parameter
     test "custom types combine with built-ins; no-transform types yield strings" do
       run =
         run_feature(
@@ -373,6 +377,7 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
       assert run.events == [{:painted, [3, "blue", "gusto"]}]
     end
 
+    # @scenario specs/behaviours/parameters.feature: Optional parameter arrives as nil when absent
     test "optional custom parameters yield nil when absent" do
       present =
         run_feature(
@@ -402,6 +407,7 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
       assert absent.events == [{:maybe_color, nil}]
     end
 
+    # @scenario specs/behaviours/runner_outcomes.feature: A step that returns an error fails its scenario
     test "a raising transformer fails the scenario with the transformer's error" do
       run =
         run_feature(

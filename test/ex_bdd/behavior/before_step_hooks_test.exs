@@ -69,6 +69,7 @@ defmodule ExBdd.BeforeStepHooksTest do
   """
 
   describe "before_step hooks that fail" do
+    # @scenario specs/behaviours/global_hooks.feature: a before-step hook runs before each step of a tagged scenario
     test "an error from a before_step hook fails the step without running its body" do
       run = run_feature(@plain_scenario, steps: [Steps], hooks: [ErroringGate])
 

@@ -83,6 +83,7 @@ defmodule ExBdd.PendingSkippedTest do
   end
 
   describe "skipped steps (CCK skipped)" do
+    # @scenario specs/behaviours/hook_outcomes.feature: A step that returns skipped ends its scenario without failing
     test "skipping halts the rest of the scenario without failing it" do
       run = run_feature(fixture("skipped"), steps: [Steps])
 
@@ -149,6 +150,8 @@ defmodule ExBdd.PendingSkippedTest do
   end
 
   describe "pending steps (CCK pending)" do
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/runner_outcomes.feature: A step that returns pending fails its scenario and skips the rest
     test "pending fails the scenario and skips the remaining steps" do
       run = run_feature(fixture("pending"), steps: [Steps])
 
@@ -267,6 +270,8 @@ defmodule ExBdd.PendingSkippedTest do
       assert count(events, :skip_after_hook) == 1
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/hook_outcomes.feature: A before hook that returns pending or an error fails its scenario
     test "pending from a before hook fails the scenario without running steps" do
       defmodule PendingBeforeHooks do
         use ExBdd.Hooks

@@ -370,6 +370,14 @@ defmodule ExBdd.CorpusFixtures do
     Map.put(result, :warning, warning)
   end
 
+  defp do_run("a Markdown feature file") do
+    BehaviorCase.run_feature(
+      File.read!(ExBdd.MarkdownFixture.path()),
+      steps: [ExBdd.MarkdownFixture.Steps],
+      file: BehaviorCase.unique_markdown_path()
+    )
+  end
+
   defp do_run(name) do
     raise ArgumentError, "no sub-run fixture named #{inspect(name)}"
   end

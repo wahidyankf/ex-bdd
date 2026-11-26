@@ -37,6 +37,7 @@ defmodule ExBdd.RunCoordinatorTest do
   end
 
   describe "before_all_context/1" do
+    # @scenario specs/behaviours/global_hooks.feature: run-level context reaches every scenario
     test "executes before_all hooks once and caches the merged context" do
       {:ok, _} = Agent.start(fn -> 0 end, name: BeforeAllProbe.Counter)
       on_exit(fn -> Agent.stop(BeforeAllProbe.Counter) end)
@@ -100,6 +101,8 @@ defmodule ExBdd.RunCoordinatorTest do
       refute_receive {:after_all_ran, _}
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/hook_outcomes.feature: An after_all that raises fails the run after every after_all hook ran
     test "a raising after_all hook fails the run with its own error" do
       RunCoordinator.ensure_started()
       RunCoordinator.register_after_all([{:after_all, nil, nil, {AfterAllProbe, :explode}}])
@@ -168,6 +171,8 @@ defmodule ExBdd.RunCoordinatorTest do
       assert {:ok, %{from_keyword: 2}} = before_all_result("keyword", :keyword)
     end
 
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/hook_outcomes.feature: A before_all that returns an error fails every scenario in the run
     test "a hook returning an error fails the run and names the hook" do
       assert {:error, message} = before_all_result("setup", :failed)
       assert message =~ "BeforeAll hook \"setup\" failed: :boom"

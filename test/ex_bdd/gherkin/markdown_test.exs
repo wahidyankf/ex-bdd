@@ -30,6 +30,8 @@ defmodule ExBdd.Gherkin.MarkdownUnitTest do
   end
 
   describe "tags" do
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/gherkin_parse.feature: .feature.md headings at any level, fences, and inline-code tags parse
     test "a tag line before a scenario tags that scenario" do
       feature =
         Markdown.parse(

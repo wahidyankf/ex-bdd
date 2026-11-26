@@ -3,6 +3,7 @@ defmodule ExBdd.VerificationTest do
 
   @fixture_root Path.expand("../fixtures/verification", __DIR__)
 
+  # @scenario specs/behaviours/verification.feature: verify_features reads the feature and step files it is given
   test "verifies and counts the complete expanded corpus" do
     result =
       ExBdd.verify_features!(
@@ -17,6 +18,7 @@ defmodule ExBdd.VerificationTest do
     assert result.binding_count == 3
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features counts every Examples row of an outline
   test "counts every scenario-outline row and its steps" do
     result = verify("outline.feature", "steps.exs")
 
@@ -24,6 +26,7 @@ defmodule ExBdd.VerificationTest do
     assert result.step_count == 6
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features rejects a corpus with no feature files
   test "rejects an empty feature corpus" do
     assert_verification_error("No feature files", fn ->
       ExBdd.verify_features!(
@@ -34,6 +37,7 @@ defmodule ExBdd.VerificationTest do
     end)
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features rejects a feature without scenarios
   test "rejects a feature without scenarios" do
     assert_verification_error("has no scenarios", fn -> verify("empty.feature", "steps.exs") end)
   end
@@ -44,30 +48,35 @@ defmodule ExBdd.VerificationTest do
     end)
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features requires an explicit When step
   test "rejects scenarios without an explicit When" do
     assert_verification_error("requires an explicit When", fn ->
       verify("missing_when.feature", "steps.exs")
     end)
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features requires an explicit Then step
   test "rejects scenarios without an explicit Then" do
     assert_verification_error("requires an explicit Then", fn ->
       verify("missing_then.feature", "steps.exs")
     end)
   end
 
+  # @scenario specs/behaviours/error_reporting.feature: verify_features reports a step that has no binding
   test "rejects undefined steps" do
     assert_verification_error("has no matching binding", fn ->
       verify("undefined.feature", "steps.exs")
     end)
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features rejects a step that two bindings match
   test "rejects ambiguous steps" do
     assert_verification_error("matches 2 bindings", fn ->
       verify("valid.feature", "ambiguous_steps.exs")
     end)
   end
 
+  # @scenario specs/behaviours/verification.feature: verify_features rejects a binding that no scenario uses
   test "rejects unused bindings" do
     assert_verification_error("is not used", fn ->
       verify("valid.feature", "unused_steps.exs")
@@ -95,8 +104,14 @@ defmodule ExBdd.VerificationTest do
     assert result.failures == 0
   end
 
-  test "verify_features!/1 rejects the live suite's Given-only scenarios" do
-    assert_verification_error("requires an explicit", fn -> ExBdd.verify_features!() end)
+  test "verify_features!/1 rejects a Given-only scenario in the Markdown fixture" do
+    assert_verification_error("requires an explicit", fn ->
+      ExBdd.verify_features!(
+        features: ["test/fixtures/markdown/markdown.feature.md"],
+        steps: ["test/features/step_definitions/markdown_steps.exs"],
+        support: []
+      )
+    end)
   end
 
   test "the public compiler returns executable modules for a valid corpus" do

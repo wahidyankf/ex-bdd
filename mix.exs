@@ -27,7 +27,7 @@ defmodule ExBdd.MixProject do
       test_coverage: [
         summary: [threshold: 99],
         ignore_modules: [
-          ~r/^ExBdd\.(BehaviorCase|CckApproval|CckFixtures|CckSchema|CckStream|CorpusFixtures|ReloadableHooks)(\.|$)/
+          ~r/^ExBdd\.(BehaviorCase|CckApproval|CckFixtures|CckSchema|CckStream|CorpusFixtures|OnDiskRun|ReloadableHooks)(\.|$)/
         ]
       ]
     ]
@@ -40,6 +40,7 @@ defmodule ExBdd.MixProject do
         precommit: :test,
         "test:quick": :test,
         "test:integration": :test,
+        "test:e2e": :test,
         validate: :test
       ]
     ]
@@ -114,6 +115,7 @@ defmodule ExBdd.MixProject do
         "test --exclude integration"
       ],
       "test:integration": ["test --include integration test/integration"],
+      "test:e2e": ["test --include e2e test/e2e"],
       "test:behaviour:coverage": ["cmd ./rhino behaviour coverage validate"],
       validate: [
         "hex.audit",
