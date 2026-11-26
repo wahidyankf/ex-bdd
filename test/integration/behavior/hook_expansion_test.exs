@@ -10,6 +10,7 @@ defmodule ExBdd.HookExpansionTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   alias ExBdd.BehaviorCase.Collector
   alias ExBdd.RunCoordinator

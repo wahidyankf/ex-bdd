@@ -10,6 +10,7 @@ defmodule ExBdd.AttachmentsTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   alias ExBdd.Attachment
 

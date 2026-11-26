@@ -1,5 +1,6 @@
 defmodule ExBdd.CckFixturesTest do
   use ExUnit.Case, async: true
+  @moduletag :integration
 
   test "authoritative schema bundle remains unchanged" do
     digest =

@@ -6,6 +6,7 @@ defmodule ExBdd.ParameterTypesBehaviorTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   alias ExBdd.BehaviorCase.Collector
 

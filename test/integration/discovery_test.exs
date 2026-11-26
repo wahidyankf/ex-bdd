@@ -1,5 +1,6 @@
 defmodule ExBdd.DiscoveryTest do
   use ExUnit.Case
+  @moduletag :integration
 
   alias ExBdd.Discovery
   alias ExBdd.StepRegistry

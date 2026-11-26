@@ -5,6 +5,7 @@ defmodule ExBdd.AmbiguityAndStacktraceTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   alias ExBdd.BehaviorCase.Collector
 

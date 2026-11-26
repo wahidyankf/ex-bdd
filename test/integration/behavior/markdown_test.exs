@@ -8,6 +8,7 @@ defmodule ExBdd.Behavior.MarkdownTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   defmodule Steps do
     use ExBdd.StepDefinition

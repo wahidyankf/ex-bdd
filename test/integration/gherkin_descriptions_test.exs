@@ -1,5 +1,6 @@
 defmodule GherkinDescriptionsTest do
   use ExUnit.Case, async: true
+  @moduletag :integration
 
   alias ExBdd.Gherkin.Parser
 

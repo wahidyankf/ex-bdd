@@ -636,7 +636,8 @@ policies:
       unit:
         - test/ex_bdd/**/*_test.exs
         - test/features/**
-      integration: []
+      integration:
+        - test/integration/**/*_test.exs
       e2e: []
 
 gates:

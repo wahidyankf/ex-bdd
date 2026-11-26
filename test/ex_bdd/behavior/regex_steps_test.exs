@@ -47,9 +47,21 @@ defmodule ExBdd.RegexStepsBehaviorTest do
 
   describe "CCK: regular-expression" do
     test "capture groups arrive as strings in order, nil for unmatched optionals" do
+      # The feature text is the same as test/fixtures/cck/regular-expression/regular-expression.feature. It is
+      # inlined so this unit test reads no file.
       run =
         run_feature(
-          File.read!("test/fixtures/cck/regular-expression/regular-expression.feature"),
+          """
+          Feature: regular expression
+
+            Cucumber supports both Cucumber and regular expressions in step
+            definitions. This shows a sample that uses a regular expression.
+
+            Scenario: regular expression
+              Given a cucumber
+              Given a cucumber and a zucchini
+              Given a cucumber and a zucchini and a gourd
+          """,
           steps: [RegexSteps]
         )
 

@@ -37,6 +37,7 @@ defmodule ExBdd.CckApprovalTest do
   """
 
   use ExBdd.BehaviorCase
+  @moduletag :integration
 
   alias ExBdd.CckApproval
   alias ExBdd.CckApproval.Definitions

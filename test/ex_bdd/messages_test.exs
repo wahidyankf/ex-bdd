@@ -113,14 +113,14 @@ defmodule ExBdd.MessagesTest do
     end
   end
 
-  describe "meta/0" do
+  describe "meta/2" do
     test "describes the implementation, runtime, os, and cpu" do
-      assert %{meta: meta} = Messages.meta()
+      assert %{meta: meta} = Messages.meta("1.18.4", {:unix, :linux})
 
       assert meta.protocolVersion =~ ~r/^\d+\.\d+\.\d+$/
       assert meta.implementation.name == "ex-bdd"
       assert meta.implementation.version =~ ~r/^\d+\.\d+\.\d+/
-      assert meta.runtime == %{name: "Elixir", version: System.version()}
+      assert meta.runtime == %{name: "Elixir", version: "1.18.4"}
       assert is_binary(meta.os.name)
       assert is_binary(meta.cpu.name)
     end

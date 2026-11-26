@@ -58,7 +58,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          "test/features/case_template_#{System.unique_integer([:positive])}.feature"
+          "test/features/case_template.feature"
         )
 
       registry = ExBdd.StepRegistry.new([], [])
@@ -85,12 +85,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          Path.join([
-            System.tmp_dir!(),
-            "ex-bdd",
-            "nested specs",
-            "home-page_#{System.unique_integer([:positive])}.feature"
-          ])
+          "/ex-bdd/nested specs/home-page.feature"
         )
 
       registry = ExBdd.StepRegistry.new([], [])
@@ -129,7 +124,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          "test/features/discovery_template_#{System.unique_integer([:positive])}.feature"
+          "test/features/discovery_template.feature"
         )
 
       discovery = %ExBdd.Discovery.DiscoveryResult{

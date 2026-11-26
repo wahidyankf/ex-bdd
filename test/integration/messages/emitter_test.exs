@@ -1,6 +1,7 @@
 defmodule ExBdd.Messages.EmitterTest do
   # async: false — the coordinator is a named singleton holding the sink
   use ExUnit.Case, async: false
+  @moduletag :integration
 
   alias ExBdd.Messages.Emitter
   alias ExBdd.RunCoordinator

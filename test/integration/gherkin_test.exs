@@ -1,5 +1,6 @@
 defmodule ExBdd.Gherkin.ParserTest do
   use ExUnit.Case, async: true
+  @moduletag :integration
 
   alias ExBdd.Gherkin.{Background, Feature, Parser, Scenario, ScenarioOutline, Step}
 

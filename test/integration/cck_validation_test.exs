@@ -1,5 +1,6 @@
 defmodule ExBdd.CckValidationTest do
   use ExUnit.Case, async: true
+  @moduletag :integration
 
   alias ExBdd.CckSchema
   alias ExBdd.CckStream
