@@ -626,12 +626,72 @@ policies:
         - family: rules
         - family: docs
         - family: pr-review
+  behaviour:
+    # The framework's own behaviour corpus stays under test/features until the move to specs/behaviours/ (D19, T8).
+    corpus:
+      - test/features
+    fixtures:
+      - test/fixtures
+    levels:
+      unit:
+        - test/ex_bdd/**/*_test.exs
+        - test/features/**
+      integration: []
+      e2e: []
 
 gates:
   composition:
     pull-request:
       relation: at-least
+  wiring:
+    hooks:
+      directory: .husky
+    ci:
+      directory: .github/workflows
+    local-surfaces:
+      pre-commit: [format-staged]
+      commit-msg: [commit-message]
+      pre-push: [public-safety-range]
   entries:
+    - id: format-staged
+      type: mutation
+      inputs:
+        staged: { kind: files }
+      mutation: { local: apply-index, ci: verify-clean }
+      command:
+        executable: bash
+        args:
+          - literal: scripts/format-staged.sh
+          - { input: staged.paths, expand: repeat }
+      run-on:
+        pre-commit:
+          bind:
+            staged: { source: git-index }
+        pull-request:
+          bind:
+            staged: { source: explicit-range, range: explicit }
+    - id: commit-message
+      type: check
+      inputs:
+        message:
+          kind: commit-message
+      command:
+        executable: bash
+        args:
+          - literal: scripts/check-commit-message.sh
+        environment:
+          RHINO_GATE_MESSAGE:
+            input: message.text
+      run-on:
+        commit-msg:
+          bind:
+            message:
+              source: hook-message-file
+        pull-request:
+          bind:
+            message:
+              source: explicit-range
+              range: explicit
     - id: public-safety
       type: check
       command:
@@ -639,8 +699,8 @@ gates:
         args:
           - literal: scripts/public-safety/check.sh
       run-on:
-        pre-commit: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: public-safety-message
       type: check
@@ -655,11 +715,8 @@ gates:
           PUBLIC_SAFETY_MESSAGE:
             input: message.text
       run-on:
-        commit-msg:
-          bind:
-            message:
-              source: hook-message-file
         pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
           bind:
             message:
               source: explicit-range
@@ -699,9 +756,8 @@ gates:
           - literal: --check
           - literal: .
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: markdown-line-length
       type: check
@@ -710,8 +766,8 @@ gates:
         args:
           - literal: scripts/check-markdown-line-length.sh
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: mix-format
       type: check
@@ -721,9 +777,8 @@ gates:
           - literal: format
           - literal: --check-formatted
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: mix-credo
       type: check
@@ -733,9 +788,8 @@ gates:
           - literal: credo
           - literal: --strict
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: mix-compile
       type: check
@@ -745,9 +799,8 @@ gates:
           - literal: compile
           - literal: --warnings-as-errors
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: mix-test
       type: check
@@ -756,8 +809,8 @@ gates:
         args:
           - literal: test
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: repo-config
       type: check
@@ -767,8 +820,8 @@ gates:
           - literal: repo-config
           - literal: validate
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: gate-registry
       type: check
@@ -778,9 +831,20 @@ gates:
           - literal: gate
           - literal: validate
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
+    - id: gate-wiring
+      type: check
+      command:
+        executable: ./rhino
+        args:
+          - literal: gate
+          - literal: wiring
+          - literal: validate
+      run-on:
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
     - id: artifact-metadata
       type: check
       command:
@@ -789,9 +853,8 @@ gates:
           - literal: metadata
           - literal: validate
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: word-budget
       type: check
@@ -802,9 +865,8 @@ gates:
           - literal: word-budget
           - literal: validate
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: internal-links
       type: check
@@ -815,9 +877,8 @@ gates:
           - literal: internal-link
           - literal: validate
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: mermaid
       type: check
@@ -828,9 +889,8 @@ gates:
           - literal: mermaid
           - literal: validate
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: md-naming
       type: check
@@ -841,8 +901,8 @@ gates:
           - literal: naming
           - literal: validate
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: directory-map
       type: check
@@ -853,8 +913,8 @@ gates:
           - literal: directory-map
           - literal: validate
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: quality-gates
       type: check
@@ -865,8 +925,8 @@ gates:
           - literal: quality-gates
           - literal: validate
       run-on:
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: harness-adapters
       type: check
@@ -876,9 +936,8 @@ gates:
           - literal: -c
           - literal: "./rhino harness adapters validate && bash .commandcode/hooks/agent-policy-selector.test.sh && bash .muse/hooks/run-policy-hook.test.sh && exec bash .commandcode/hooks/git-fixture-isolation.test.sh"
       run-on:
-        pre-commit: {}
-        pre-push: {}
-        pull-request: {}
+        pull-request:
+          reason: "C6: a check outside the local hooks' allowed lists runs at pull-request only."
         main: {}
     - id: hex-package
       type: check
