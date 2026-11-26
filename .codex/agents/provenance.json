@@ -266,7 +266,7 @@
   "resolvedModels": {
     "execution": "gpt-6.1-terra",
     "fast": "gpt-6.1-terra",
-    "plan": "gpt-6.1-sol",
-    "ultra": "gpt-6.1-sol"
+    "plan": "gpt-6.2-sol",
+    "ultra": "gpt-6.2-sol"
   }
 }
