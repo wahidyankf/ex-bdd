@@ -131,7 +131,8 @@ mix test --only ex_bdd
 mix test --only feature_basic_calculator
 
 # Fast check while developing: compile with warnings as errors,
-# verify formatting, run strict Credo, then the test suite
+# verify formatting, run strict Credo, run the test suite, then
+# the behaviour coverage check
 mix test:quick
 
 # Full cleanup before committing: format, strict Credo, drop unused
@@ -183,11 +184,13 @@ records their status.
 | `agent-hippo-guard-test` | pr, main | `bash scripts/agent-hippo-guard.test.sh`       | HIPPO guard tests           |
 
 - Scope: every entry runs at global scope, because the repository is one Elixir project.
-- Test levels: `mix-test` runs every test not tagged `integration` and fails below the 99% unit floor.
-  `test:integration` runs through `mix-test-integration` on the pull request and `main`. `test:e2e` runs through
-  `test-e2e` on `main` only.
-- Exempt layers: none declared. Network denial: not recorded. `hex-package` needs network access to resolve Hex
-  dependencies.
+- Test levels: `mix-test` runs every test not tagged `integration` or `e2e` and fails below the 99% unit floor.
+  `test:integration` runs through `mix-test-integration` on the pull request and `main` (a corpus scenario tagged
+  `@integration` runs only there). `test:e2e` runs through `test-e2e` on `main` only.
+- Coverage exclusion: non-production code such as tests, fixtures, and test-support doubles. In this repository that is
+  the modules under `test/support/`, listed by namespace in `mix.exs`; no `lib/` module is excluded.
+- Exempt layers: none declared. Network denial is not feasible on the development host (the `unshare -rn true` probe is
+  refused), so the EX9100 ban still applies. `hex-package` needs network access to resolve Hex dependencies.
 - `harness-adapters` runs `./rhino harness adapters validate`, then `.commandcode/hooks/agent-policy-selector.test.sh`,
   `.muse/hooks/run-policy-hook.test.sh`, and `.commandcode/hooks/git-fixture-isolation.test.sh`.
 

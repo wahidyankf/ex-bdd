@@ -32,9 +32,10 @@ case between the run and the Messages emitter. `lib/mix/tasks/` holds the instal
 aggregate command dispatch it through `./rhino gate run --surface <surface>`, so a gate added there reaches every
 surface it declares. Under the
 [Test and Gate Contract](repo-governance/development/quality/checks/test-and-gate-contract.md), `pre-push` runs only the
-leak scan, and `pull-request` holds every other check. The registry follows that placement, and the main surface, run
-after each push to `main`, also runs the consumer-project test (`test:e2e`).
-[Quality Gates](repo-governance/development/quality-gates.md) records the status of each rule.
+leak scan, and `pull-request` holds every other check. The registry follows that placement, except that the main
+surface, run after each push to `main`, repeats most pull-request checks and also runs the consumer-project test
+(`test:e2e`). C6 stays open in [Quality Gates](repo-governance/development/quality-gates.md), which records the status
+of each rule.
 
 `./rhino` installs the RHINO release `rhino.lock` pins and verifies it before running; exit `125` is the wrapper
 refusing. This repository pins RHINO and HIPPO: no FERRET. `./hippo` guards local runs under the shared reservation.
