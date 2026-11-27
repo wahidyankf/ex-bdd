@@ -1,5 +1,6 @@
 Feature: Configuration keys that set discovery paths
 
+  # Behaviour: BH-69
   # Exemption(e2e): discovery paths are read only through ExBdd.Discovery options; alternative-proof: test:integration
   @e2e-exempt
   Scenario: config features, steps, and support set the discovery paths

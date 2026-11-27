@@ -11,6 +11,8 @@ name: PR quality gate
 # The main surface runs after a push to main. A pull request never runs it, and
 # the aggregate job checks that each job ran or was skipped as its event expects.
 #
+# Compute runs under the pinned HIPPO wrapper, as the hooks do.
+#
 # Every uses: line names a full commit SHA, with the release tag in a comment.
 # The resolution of each SHA is recorded in phase-11-ex-bdd-workflow-versions.md.
 on:
@@ -45,7 +47,7 @@ jobs:
           node-version: "24.22.3"
           cache: npm
 
-      - run: npm ci
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- npm ci
 
       # Proves the pinned RHINO release resolves and verifies on an empty cache.
       - name: Pinned RHINO bootstrap
@@ -61,13 +63,15 @@ jobs:
         run: |
           set -eu
           export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          ./rhino gate run --surface pull-request \
+          ./hippo run --class ephemeral --resource-tier light --disk-path . -- \
+            ./rhino gate run --surface pull-request \
             --entry markdown-format --entry markdown-line-length \
             --entry word-budget --entry internal-links --entry mermaid \
             --entry md-naming --entry directory-map --entry quality-gates \
             --entry artifact-metadata --entry harness-adapters \
             --entry repo-config --entry gate-registry --entry gate-wiring \
             --entry behaviour-coverage \
+            --entry agent-hippo-guard-test \
             --base "${BASE_SHA}" --head "${HEAD_SHA}"
 
   # Hygiene for every change: the public-safety screens and the commit-message lint.
@@ -86,7 +90,7 @@ jobs:
           node-version: "24.22.3"
           cache: npm
 
-      - run: npm ci
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- npm ci
 
       - name: Run the public-safety and commit-message entries
         env:
@@ -95,7 +99,8 @@ jobs:
         run: |
           set -eu
           export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          ./rhino gate run --surface pull-request \
+          ./hippo run --class ephemeral --resource-tier light --disk-path . -- \
+            ./rhino gate run --surface pull-request \
             --entry public-safety --entry public-safety-range \
             --entry public-safety-message --entry public-safety-tests \
             --entry commit-message \
@@ -117,7 +122,7 @@ jobs:
           node-version: "24.22.3"
           cache: npm
 
-      - run: npm ci
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- npm ci
 
       # The Elixir and OTP versions match mise.toml.
       - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
@@ -134,7 +139,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-mix-entries-
 
-      - run: mix deps.get
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- mix deps.get
 
       - name: Run the Elixir entries
         env:
@@ -143,7 +148,8 @@ jobs:
         run: |
           set -eu
           export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          ./rhino gate run --surface pull-request \
+          ./hippo run --class ephemeral --resource-tier standard --disk-path . -- \
+            ./rhino gate run --surface pull-request \
             --entry format-staged --entry mix-format --entry mix-credo \
             --entry mix-compile --entry mix-test --entry mix-test-integration \
             --entry hex-package \
@@ -152,7 +158,7 @@ jobs:
       # Outside the registry: a GitHub lookup of the pinned CCK fixtures. It does not
       # vary by Elixir version, so it runs once here rather than in each matrix pair.
       - name: Verify pinned CCK provenance
-        run: mix run scripts/check_cck.exs
+        run: ./hippo run --class ephemeral --resource-tier standard --disk-path . -- mix run scripts/check_cck.exs
         env:
           MIX_ENV: test
           GH_TOKEN: ${{ github.token }}
@@ -194,9 +200,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-
 
-      - run: mix deps.get
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- mix deps.get
 
-      - run: mix validate
+      - run: ./hippo run --class ephemeral --resource-tier standard --disk-path . -- mix validate
 
   # The main surface, after a push to main. It runs every registry entry with a main
   # run-on, which repeats most pull-request entries on the merged tree and adds test-e2e.
@@ -215,20 +221,21 @@ jobs:
           node-version: "24.22.3"
           cache: npm
 
-      - run: npm ci
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- npm ci
 
       - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           elixir-version: "1.20.4"
           otp-version: "29.1.2"
 
-      - run: mix deps.get
+      - run: ./hippo run --class transactional --resource-tier standard --disk-path . -- mix deps.get
 
       - name: Run the main surface
         run: |
           set -eu
           export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          ./rhino gate run --surface main
+          ./hippo run --class ephemeral --resource-tier standard --disk-path . -- \
+            ./rhino gate run --surface main
 
   # The single required status check. Each job must succeed on the event that
   # runs it, and each job the event does not run must be skipped. Any other

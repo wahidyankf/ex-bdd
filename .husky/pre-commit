@@ -2,6 +2,9 @@
 # The same ordered registry `repo-config.yml` declares, dispatched rather than
 # transcribed. A hook that restates the order is a second copy of it, and the
 # two drift the first time a gate is added to one and not the other.
+#
+# The hook runs inside one HIPPO boundary, which holds the whole dispatch.
 set -euo pipefail
 
-exec ./rhino gate run --surface pre-commit
+exec ./hippo run --class transactional --resource-tier light --disk-path . -- \
+  ./rhino gate run --surface pre-commit

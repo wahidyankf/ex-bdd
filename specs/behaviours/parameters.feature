@@ -1,5 +1,6 @@
 Feature: Parameter extraction
 
+# Behaviour: BH-37
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Testing different parameter types
@@ -14,6 +15,7 @@ Scenario: Atom parameter extraction
   Given status is pending
   Then the status should be the atom pending
 
+# Behaviour: BH-39
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Optional text for pluralization
@@ -21,6 +23,7 @@ Scenario: Optional text for pluralization
   And I have 5 cucumbers
   Then the total cucumber count should be 6
 
+# Behaviour: BH-44
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Alternation matching
@@ -28,6 +31,7 @@ Scenario: Alternation matching
   When I click the submit button
   Then I should have interacted
 
+# Behaviour: BH-38
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Optional parameter arrives as nil when absent
@@ -36,12 +40,14 @@ Scenario: Optional parameter arrives as nil when absent
   Given the carton holds 6 eggs
   Then the egg count is 6
 
+# Behaviour: BH-40
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Escaped characters in a step pattern match literal step text
   When a literal {brace} and a path/to/file with call()
   Then the literal step has run
 
+# Behaviour: BH-44
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Alternation matches the second word of click/tap
@@ -49,12 +55,14 @@ Scenario: Alternation matches the second word of click/tap
   When I tap the submit button
   Then I should have interacted
 
+# Behaviour: BH-42
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: A custom parameter type without capture groups gets the whole match
   Given seat 12C is reserved
   Then the reserved seat is "12C"
 
+# Behaviour: BH-13
 # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
 @e2e-exempt
 Scenario: The expression API returns typed arguments for matching text
@@ -64,6 +72,7 @@ Scenario: The expression API returns typed arguments for matching text
   When the compiled expression matches "I have no items"
   Then the match result is ":no_match"
 
+  # Behaviour: BH-12
   # Exemption(e2e): parameter expressions match only through ExBdd.Expression; alternative-proof: test:integration
   @e2e-exempt
   Scenario: A step with an unregistered parameter type is reported undefined

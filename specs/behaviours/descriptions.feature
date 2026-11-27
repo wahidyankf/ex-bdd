@@ -8,6 +8,8 @@ Feature: Descriptions and docstring delimiters
 
     Given a noted base value "carrot"
 
+  # Behaviour: BH-29
+  # Behaviour: BH-30
   # Exemption(e2e): descriptions reach a parsed feature only through Parser.parse; alternative-proof: test:integration
   @e2e-exempt
   Scenario: standard docstring under a described scenario
@@ -21,6 +23,8 @@ Feature: Descriptions and docstring delimiters
     Then the noted docstring is "hello from triple quotes"
     And the noted docstring has no media type
 
+  # Behaviour: BH-29
+  # Behaviour: BH-30
   # Exemption(e2e): descriptions reach a parsed feature only through Parser.parse; alternative-proof: test:integration
   @e2e-exempt
   Scenario: backtick docstring with a media type
@@ -33,6 +37,7 @@ Feature: Descriptions and docstring delimiters
     Then the noted docstring contains "vegetable"
     And the noted docstring media type is "json"
 
+  # Behaviour: BH-29
   # Exemption(e2e): descriptions reach a parsed feature only through Parser.parse; alternative-proof: test:integration
   @e2e-exempt
   Scenario Outline: outlines can be described as well

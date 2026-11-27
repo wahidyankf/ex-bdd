@@ -1,5 +1,6 @@
 Feature: Parsing Gherkin text
 
+# Behaviour: BH-14
 # Exemption(e2e): parser output is an Elixir value reached only via Parser.parse; alternative-proof: test:integration
 @e2e-exempt
 Scenario: parse reads the feature name, tags, and scenarios of a feature text
@@ -16,6 +17,7 @@ Scenario: parse reads the feature name, tags, and scenarios of a feature text
   Then the parsed feature is named "Parsed feature" with 2 scenarios
   And the parsed feature has the tag "parsed"
 
+# Behaviour: BH-15
 # Exemption(e2e): parser output is an Elixir value reached only via Parser.parse; alternative-proof: test:integration
 @e2e-exempt
 Scenario: parse reports a malformed table row with its path and line
@@ -30,6 +32,7 @@ Scenario: parse reports a malformed table row with its path and line
   When the parser reads the text as "broken.feature"
   Then the parser raises a parse error whose message starts with "Gherkin parse error at broken.feature:5:7"
 
+# Behaviour: BH-16
 # Exemption(e2e): parser output is an Elixir value reached only via Parser.parse; alternative-proof: test:integration
 @e2e-exempt
 Scenario: parse reads a feature.md path as Markdown
@@ -44,6 +47,7 @@ Scenario: parse reads a feature.md path as Markdown
   When the parser reads the text as "parsed.feature.md"
   Then the parsed feature is named "Markdown parsed" with 1 scenario
 
+  # Behaviour: BH-36
   # Exemption(e2e): parser output is an Elixir value reached only via Parser.parse; alternative-proof: test:integration
   @e2e-exempt
   Scenario: .feature.md headings at any level, fences, and inline-code tags parse

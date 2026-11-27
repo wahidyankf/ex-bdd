@@ -10,6 +10,8 @@ Feature: Rules group related scenarios
     Background:
       Given a ledger entry for "rule setup"
 
+    # Behaviour: BH-22
+    # Behaviour: BH-25
     # Exemption(e2e): Rule grouping reaches a run only through the Gherkin parser; alternative-proof: test:integration
     @e2e-exempt
     Example: both backgrounds apply
@@ -17,6 +19,7 @@ Feature: Rules group related scenarios
       Then the ledger total is 2
 
   Rule: Rules can use the Scenario keyword too
+    # Behaviour: BH-23
     # Exemption(e2e): Rule grouping reaches a run only through the Gherkin parser; alternative-proof: test:integration
     @e2e-exempt
     Scenario: only the feature background applies
@@ -25,6 +28,7 @@ Feature: Rules group related scenarios
 
   @rule-tagged
   Rule: Rule tags apply to the scenarios in the rule
+    # Behaviour: BH-24
     # Exemption(e2e): Rule grouping reaches a run only through the Gherkin parser; alternative-proof: test:integration
     @e2e-exempt
     Scenario: a scenario inherits the rule tag

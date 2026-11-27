@@ -2,6 +2,9 @@
 # The last local moment before anything reaches a remote. Git's ref-update
 # lines are the declared typed input, so Rhino reads what Git is actually about
 # to send without forwarding arbitrary hook arguments.
+#
+# The hook runs inside one HIPPO boundary, which passes Git's ref-update lines on standard input unchanged.
 set -euo pipefail
 
-exec ./rhino gate run --surface pre-push --push-updates-stdin
+exec ./hippo run --class ephemeral --resource-tier light --disk-path . -- \
+  ./rhino gate run --surface pre-push --push-updates-stdin

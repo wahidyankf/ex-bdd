@@ -59,6 +59,41 @@ defmodule ExBdd.RuntimeErrorTest do
 
       assert error.message =~ "deliberate failure"
     end
+
+    # @scenario specs/behaviours/runner_outcomes.feature: A failing step shows its message, history, and stacktrace
+    test "a failing step's error carries its message, its step history, and a feature-file stacktrace",
+         %{step_registry: step_registry} do
+      step = %Step{keyword: "When", text: "I fail with an error", line: 10}
+
+      context = %{
+        feature_file: "test/features/error.feature",
+        scenario_name: "Error handling",
+        step_history: [
+          %Step{keyword: "Given", text: "a previous step"},
+          %Step{keyword: "And", text: "another previous step"}
+        ]
+      }
+
+      {error, stacktrace} =
+        try do
+          Runtime.execute_step(context, step, step_registry)
+          :no_error
+        rescue
+          raised -> {raised, __STACKTRACE__}
+        end
+
+      assert %ExBdd.StepError{} = error
+      assert error.message =~ "deliberate failure"
+      assert error.message =~ "Step execution history:"
+      assert error.message =~ "[passed] Given a previous step"
+      assert error.message =~ "[passed] And another previous step"
+      assert error.message =~ "[failed] When I fail with an error"
+
+      # The first frame is the failing step's line in the feature file (line 10, 0-based, plus one).
+      assert [{ExBdd.Scenario, :scenario, 1, location} | _] = stacktrace
+      assert location[:file] == ~c"test/features/error.feature"
+      assert location[:line] == 11
+    end
   end
 
   describe "PhoenixTest error formatting" do

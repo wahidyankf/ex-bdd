@@ -1,5 +1,7 @@
 Feature: Attachments
 
+# Behaviour: BH-62
+# Behaviour: BH-63
 # Exemption(e2e): attachments reach a run only via ExBdd.attach and the runner; alternative-proof: test:integration
 @e2e-exempt
 Scenario: attach, log, and link return the context unchanged
@@ -7,6 +9,7 @@ Scenario: attach, log, and link return the context unchanged
   When I attach text, a log line, and a link
   Then the context still holds its value
 
+  # Behaviour: BH-64
   # Exemption(e2e): attachments reach a run only via ExBdd.attach and the runner; alternative-proof: test:integration
   @e2e-exempt
   Scenario: Attachments show on failure and in the NDJSON stream
