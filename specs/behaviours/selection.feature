@@ -1,5 +1,6 @@
 Feature: Selecting ExBdd scenarios with mix test --only
 
+  # Behaviour: BH-73
   # Exemption(e2e): tag selection is the ExUnit filter the integration level runs; alternative-proof: test:integration
   @e2e-exempt
   Scenario: mix test --only selects ExBdd scenarios by tag

@@ -2,6 +2,7 @@ Feature: Custom parameter types
   Custom parameter types registered in support files can be used
   in step patterns like the built-in types.
 
+  # Behaviour: BH-41
   # Exemption(e2e): parameter types are matched only through the expression API; alternative-proof: test:integration
   @e2e-exempt
   Scenario: a transformed route parameter
@@ -9,6 +10,7 @@ Feature: Custom parameter types
     Then the flight departs from "LHR"
     And the flight arrives in "CDG"
 
+  # Behaviour: BH-41
   # Exemption(e2e): parameter types are matched only through the expression API; alternative-proof: test:integration
   @e2e-exempt
   Scenario: an untransformed enum parameter

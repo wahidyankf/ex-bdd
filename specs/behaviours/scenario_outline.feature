@@ -1,5 +1,6 @@
 Feature: Scenario Outline Support
 
+  # Behaviour: BH-26
   # Exemption(e2e): outline expansion reaches a run only through the parser; alternative-proof: test:integration
   @e2e-exempt
   Scenario Outline: Adding numbers
@@ -17,6 +18,7 @@ Feature: Scenario Outline Support
       | a  | b  | sum |
       | 10 | 20 | 30  |
 
+  # Behaviour: BH-27
   @tagged-outline
   # Exemption(e2e): outline expansion reaches a run only through the parser; alternative-proof: test:integration
   @e2e-exempt

@@ -1,6 +1,7 @@
 Feature: Shared Steps Integration
   This feature tests that shared steps work correctly with Cucumber
   
+  # Behaviour: BH-02
   # Exemption(e2e): shared steps reach a run only through step registration; alternative-proof: test:integration
   @e2e-exempt
   Scenario: Using shared authentication steps

@@ -378,6 +378,18 @@ defmodule ExBdd.CorpusFixtures do
     )
   end
 
+  defp do_run("a failing step after a passing one") do
+    BehaviorCase.run_feature(
+      """
+      Feature: A failing step after a passing one
+        Scenario: the failing step
+          Given a passing step
+          When a step that raises
+      """,
+      steps: [Steps]
+    )
+  end
+
   defp do_run(name) do
     raise ArgumentError, "no sub-run fixture named #{inspect(name)}"
   end

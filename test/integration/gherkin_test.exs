@@ -512,7 +512,7 @@ defmodule ExBdd.Gherkin.ParserTest do
         "specs/behaviours/parameters.feature" => 10,
         "specs/behaviours/regex_steps.feature" => 2,
         "specs/behaviours/retry.feature" => 4,
-        "specs/behaviours/runner_outcomes.feature" => 3,
+        "specs/behaviours/runner_outcomes.feature" => 4,
         "specs/behaviours/return_values.feature" => 4,
         "specs/behaviours/rules.feature" => 3,
         "specs/behaviours/scenario_outline.feature" => 2,

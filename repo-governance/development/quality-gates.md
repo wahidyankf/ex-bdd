@@ -38,7 +38,7 @@ Module status, as [Conformance Record](quality/checks/test-and-gate-contract/007
   through remote pull requests. C11 holds.
 - **003 Pull-Request Scope: adopted.** One Elixir project, so every check runs at global scope, which C7 always allows.
 - **004 Test Levels and Targets: adapted, open.** C14, C18, and C21 are open.
-- **005 Behaviour Corpus: adapted, open.** C13 is open: the corpus lives in `test/features`, not `specs/behaviours/`.
+- **005 Behaviour Corpus: adopted.** C13 holds.
 - **006 Coverage Floor: adapted, open.** C15 is open: the 99% unit floor is not met, and no cover tool is wired.
 - **007 Conformance Record: adapted, open.** C22 is open. C16, C19, C20, C23, and C24 hold.
 
@@ -56,7 +56,7 @@ Module status, as [Conformance Record](quality/checks/test-and-gate-contract/007
 | C10  | open           | `commit-msg` and `pull-request` run the commit-message lint        |
 | C11  | adopted        | `public-safety-range` runs at `pre-push` and in the pull request   |
 | C12  | adopted        | unit and behaviour tests run in `mix test`; integration is ungated |
-| C13  | open           | the corpus is `test/features`; the binding check is not wired      |
+| C13  | adopted        | the corpus is `specs/behaviours`; `behaviour-coverage` binds it    |
 | C14  | open           | three targets are defined; `test:e2e` is not                       |
 | C15  | open           | the 99% unit floor is not met; no cover tool is wired              |
 | C16  | adopted        | `mix credo --strict` and warnings-as-errors compile run            |

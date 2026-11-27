@@ -5,17 +5,21 @@ Feature: Hook Execution Order
   Background:
     Given I record "background_step"
 
+  # Behaviour: BH-21
+  # Behaviour: BH-60
   # Exemption(e2e): hook order is observed only through the hook API calls; alternative-proof: test:integration
   @e2e-exempt
   Scenario: Verify execution order
     When I record "scenario_step"
     Then the execution order should be "feature_hook,background_step,scenario_step"
 
+  # Behaviour: BH-57
   # Exemption(e2e): hook order is observed only through the hook API calls; alternative-proof: test:integration
   @e2e-exempt
   Scenario: A global before-scenario hook runs for every scenario
     Given the global before hook has run
 
+  # Behaviour: BH-59
   @named-hooks
   # Exemption(e2e): hook order is observed only through the hook API calls; alternative-proof: test:integration
   @e2e-exempt

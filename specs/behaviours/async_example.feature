@@ -2,6 +2,7 @@
 Feature: Async Feature Example
   This feature demonstrates running scenarios asynchronously
 
+  # Behaviour: BH-20
   # Exemption(e2e): async scenario context reaches steps only via the runner API; alternative-proof: test:integration
   @e2e-exempt
   Scenario: Steps of an async scenario share its context

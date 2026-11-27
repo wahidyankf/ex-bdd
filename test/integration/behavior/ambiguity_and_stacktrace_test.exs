@@ -167,6 +167,31 @@ defmodule ExBdd.AmbiguityAndStacktraceTest do
     end
   end
 
+  describe "failing step output" do
+    # @scenario specs/behaviours/runner_outcomes.feature: A failing step shows its message, history, and stacktrace
+    test "a failing step's output shows its message, step history, and stacktrace" do
+      run =
+        run_feature(
+          """
+          Feature: failing output
+            Scenario: failing
+              Given a passing step
+              When a step that raises
+          """,
+          steps: [FailingSteps],
+          file: "test/fixtures/generated/failing_output.feature"
+        )
+
+      assert %{total: 1, passed: 0, failures: 1} = run
+      assert run.output =~ "kaboom"
+      assert run.output =~ "Step execution history:"
+      assert run.output =~ "[passed] Given a passing step"
+      assert run.output =~ "[failed] When a step that raises"
+      assert run.output =~ "stacktrace:"
+      assert run.output =~ "test/fixtures/generated/failing_output.feature:4"
+    end
+  end
+
   describe "stack traces point at the feature file (#22)" do
     test "a failing step's first stack frame is the feature file at the step's line" do
       run =

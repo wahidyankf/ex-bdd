@@ -5,6 +5,7 @@ Background:
     | key   | value |
     | setup | true  |
 
+# Behaviour: BH-30
 # Exemption(e2e): docstrings and tables reach a step only through the step API; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Use docstring in a step
@@ -17,6 +18,7 @@ Scenario: Use docstring in a step
   When I process the document
   Then I should verify it contains "multi-line"
 
+# Behaviour: BH-31
 # Exemption(e2e): docstrings and tables reach a step only through the step API; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Use data table in a step
@@ -28,6 +30,7 @@ Scenario: Use data table in a step
   When I search for "alice"
   Then I should find user with email "alice@email.com"
 
+# Behaviour: BH-28
 # Exemption(e2e): docstrings and tables reach a step only through the step API; alternative-proof: test:integration
 @e2e-exempt
 Scenario Outline: Placeholders fill a docstring and a data table
@@ -45,6 +48,7 @@ Scenario Outline: Placeholders fill a docstring and a data table
     | name  | place |
     | Alice | Paris |
 
+# Behaviour: BH-32
 # Exemption(e2e): docstrings and tables reach a step only through the step API; alternative-proof: test:integration
 @e2e-exempt
 Scenario: A blank table cell arrives as an empty string
@@ -53,6 +57,7 @@ Scenario: A blank table cell arrives as an empty string
     | alice |          |
   Then the first nickname is ""
 
+# Behaviour: BH-33
 # Exemption(e2e): docstrings and tables reach a step only through the step API; alternative-proof: test:integration
 @e2e-exempt
 Scenario: Escaped pipes and newlines in table cells

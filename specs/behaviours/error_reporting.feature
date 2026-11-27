@@ -1,5 +1,6 @@
 Feature: Error Reporting
 
+# Behaviour: BH-09
 # Exemption(e2e): verify_features reports only through ExBdd.verify_features!; alternative-proof: test:integration
 @e2e-exempt
 Scenario: verify_features reports a step that has no binding
