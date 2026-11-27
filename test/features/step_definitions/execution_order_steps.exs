@@ -12,4 +12,10 @@ defmodule ExecutionOrderSteps do
     assert actual == expected, "Expected #{expected} but got #{actual}"
     {:ok, context}
   end
+
+  step "the named hooks have run", context do
+    assert context[:first_named] == true
+    assert context[:second_named] == true
+    context
+  end
 end

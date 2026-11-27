@@ -40,6 +40,7 @@ defmodule ExBdd.DataTablesBehaviorTest do
       {:flavor, ""}
     ]
 
+    # @scenario specs/behaviours/advanced_features.feature: A blank table cell arrives as an empty string
     test "reach the step in their column and substitute as empty strings" do
       result =
         run_feature(
@@ -103,6 +104,7 @@ defmodule ExBdd.DataTablesBehaviorTest do
       {:flavor, "a | b"}
     ]
 
+    # @scenario specs/behaviours/advanced_features.feature: Escaped pipes and newlines in table cells
     test "reach the step unescaped, in data tables and Examples substitution" do
       result =
         run_feature(

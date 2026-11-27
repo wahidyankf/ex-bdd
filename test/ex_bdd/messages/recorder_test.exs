@@ -368,4 +368,15 @@ defmodule ExBdd.Messages.RecorderTest do
       assert %{body: "hi", testCaseStartedId: ^attempt, testStepId: "12"} = payload
     end
   end
+
+  describe "a step event for a test case the recorder does not track" do
+    test "is recorded without opening any tracking for that test case" do
+      recorder = Recorder.new([], 1, %{}, %{})
+
+      {_reply, recorder} = Recorder.record(recorder, {:step_started, 99, 7}, 0)
+
+      assert %Recorder{attempts: attempts} = recorder
+      assert attempts == %{}
+    end
+  end
 end

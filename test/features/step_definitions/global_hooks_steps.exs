@@ -13,4 +13,9 @@ defmodule GlobalHooksSteps do
     assert Agent.get(context.global_hooks_counter, & &1) >= 2
     :ok
   end
+
+  step "the global before hook has run", context do
+    assert context[:global_before_ran] == true
+    context
+  end
 end

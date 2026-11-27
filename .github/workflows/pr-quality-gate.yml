@@ -1,0 +1,271 @@
+name: PR quality gate
+
+# The one hosted gate for this repository. It replaces ci.yml and quality.yml.
+#
+# Gates come from the registry in `repo-config.yml`, dispatched through the pinned
+# RHINO wrapper. Each job names its registry entries with `--entry`, so every
+# pull-request entry runs in exactly one job (C1). The Elixir and OTP matrix is the
+# one job outside the registry: each pair runs only `mix validate`, and the registry
+# entries run once, on the pinned toolchain, in `elixir-entries`.
+#
+# The main surface runs after a push to main. A pull request never runs it, and
+# the aggregate job checks that each job ran or was skipped as its event expects.
+#
+# Every uses: line names a full commit SHA, with the release tag in a comment.
+# The resolution of each SHA is recorded in phase-11-ex-bdd-workflow-versions.md.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-quality-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Documents, repository state, and the registry's own checks. Node only.
+  documents:
+    name: Documents and repository checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The range entries read the immutable base and head from the commits
+      # themselves, so the full history must be present.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.22.3"
+          cache: npm
+
+      - run: npm ci
+
+      # Proves the pinned RHINO release resolves and verifies on an empty cache.
+      - name: Pinned RHINO bootstrap
+        run: |
+          set -eu
+          pinned=$(sed -n 's/^version=//p' rhino.lock)
+          test "$(./rhino version)" = "${pinned%%-*}"
+
+      - name: Run the document and repository entries
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          ./rhino gate run --surface pull-request \
+            --entry markdown-format --entry markdown-line-length \
+            --entry word-budget --entry internal-links --entry mermaid \
+            --entry md-naming --entry directory-map --entry quality-gates \
+            --entry artifact-metadata --entry harness-adapters \
+            --entry repo-config --entry gate-registry --entry gate-wiring \
+            --entry behaviour-coverage \
+            --base "${BASE_SHA}" --head "${HEAD_SHA}"
+
+  # Hygiene for every change: the public-safety screens and the commit-message lint.
+  public-safety:
+    name: Public-safety screens and commit messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.22.3"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run the public-safety and commit-message entries
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          ./rhino gate run --surface pull-request \
+            --entry public-safety --entry public-safety-range \
+            --entry public-safety-message --entry public-safety-tests \
+            --entry commit-message \
+            --base "${BASE_SHA}" --head "${HEAD_SHA}"
+
+  # The Elixir-dependent entries of the pull-request surface, on the pinned toolchain.
+  elixir-entries:
+    name: Elixir entries
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.22.3"
+          cache: npm
+
+      - run: npm ci
+
+      # The Elixir and OTP versions match mise.toml.
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          elixir-version: "1.20.4"
+          otp-version: "29.1.2"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-entries-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-entries-
+
+      - run: mix deps.get
+
+      - name: Run the Elixir entries
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          ./rhino gate run --surface pull-request \
+            --entry format-staged --entry mix-format --entry mix-credo \
+            --entry mix-compile --entry mix-test --entry mix-test-integration \
+            --entry hex-package \
+            --base "${BASE_SHA}" --head "${HEAD_SHA}"
+
+      # Outside the registry: a GitHub lookup of the pinned CCK fixtures. It does not
+      # vary by Elixir version, so it runs once here rather than in each matrix pair.
+      - name: Verify pinned CCK provenance
+        run: mix run scripts/check_cck.exs
+        env:
+          MIX_ENV: test
+          GH_TOKEN: ${{ github.token }}
+
+  # The Elixir and OTP matrix is a compatibility job outside the registry. Each pair
+  # runs only `mix validate`, a mix alias that repeats the format, credo, compile, and
+  # test commands and adds hex audit, unused-dependency, release-script, and package
+  # build checks. The 1.20.4 and 29.1.2 pair matches mise.toml.
+  elixir:
+    name: Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        include:
+          - elixir: "1.18.0"
+            otp: "26"
+          - elixir: "1.19"
+            otp: "28"
+          - elixir: "1.20.4"
+            otp: "28"
+          - elixir: "1.20.4"
+            otp: "29.1.2"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-
+
+      - run: mix deps.get
+
+      - run: mix validate
+
+  # The main surface, after a push to main. It runs every registry entry with a main
+  # run-on, which repeats most pull-request entries on the merged tree and adds test-e2e.
+  main-surface:
+    name: Main surface
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.22.3"
+          cache: npm
+
+      - run: npm ci
+
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          elixir-version: "1.20.4"
+          otp-version: "29.1.2"
+
+      - run: mix deps.get
+
+      - name: Run the main surface
+        run: |
+          set -eu
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          ./rhino gate run --surface main
+
+  # The single required status check. Each job must succeed on the event that
+  # runs it, and each job the event does not run must be skipped. Any other
+  # result fails the aggregate.
+  quality-gate:
+    name: quality-gate
+    needs: [documents, public-safety, elixir-entries, elixir, main-surface]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check every gate
+        env:
+          EVENT: ${{ github.event_name }}
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -eu
+          if [ "${EVENT}" = "push" ]; then
+            ran="main-surface"
+            skipped="documents public-safety elixir-entries elixir"
+          else
+            ran="documents public-safety elixir-entries elixir"
+            skipped="main-surface"
+          fi
+          failed=0
+          for job in ${ran}; do
+            result=$(printf '%s' "${NEEDS}" | jq -r --arg job "${job}" '.[$job].result')
+            echo "${job}: ${result}"
+            [ "${result}" = "success" ] || failed=1
+          done
+          for job in ${skipped}; do
+            result=$(printf '%s' "${NEEDS}" | jq -r --arg job "${job}" '.[$job].result')
+            echo "${job}: ${result} (not part of this event)"
+            [ "${result}" = "skipped" ] || failed=1
+          done
+          if [ "${failed}" -ne 0 ]; then
+            echo "A quality gate job did not succeed." >&2
+            exit 1
+          fi
+          echo "All quality gates passed."

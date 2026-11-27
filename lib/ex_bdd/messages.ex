@@ -140,16 +140,18 @@ defmodule ExBdd.Messages do
 
   @doc """
   Builds the `meta` envelope describing this implementation and its host.
+
+  The runtime version and the OS type default to the running host; a caller may pass its own.
   """
-  @spec meta() :: envelope()
-  def meta do
-    {_family, os_name} = :os.type()
+  @spec meta(String.t(), {atom(), atom()}) :: envelope()
+  def meta(runtime_version \\ System.version(), os_type \\ :os.type()) do
+    {_family, os_name} = os_type
 
     %{
       meta: %{
         protocolVersion: @protocol_version,
         implementation: %{name: "ex-bdd", version: implementation_version()},
-        runtime: %{name: "Elixir", version: System.version()},
+        runtime: %{name: "Elixir", version: runtime_version},
         os: %{name: to_string(os_name)},
         cpu: %{name: cpu_name()}
       }

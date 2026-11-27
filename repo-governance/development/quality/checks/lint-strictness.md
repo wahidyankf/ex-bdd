@@ -30,7 +30,8 @@ ships.
 There is no advisory tier. One threshold everywhere means quality does not depend on which kind of file a change happens
 to touch, and nobody learns a separate bar per language.
 
-Each gate runs in the local hooks, and in continuous integration as well wherever the repository has it.
+Each lint gate runs on the `pull-request` surface, which replays the hook checks, per
+[Surface Placement](test-and-gate-contract/002-surface-placement.md).
 
 ## Clean, Then Gate
 

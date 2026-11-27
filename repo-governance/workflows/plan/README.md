@@ -29,3 +29,5 @@ here; idea and backlog grooming are not adopted, so a plan starts from Planning.
 - [Planning](plan-planning.md)
 - [Execution](plan-execution.md)
 - [Execution Check](plan-execution-check.md)
+- [Backlog Grooming](plan-backlog-grooming.md) — Reviews every formal plan in the backlog root and drives each to
+  still-valid, needs-revision, or removal.

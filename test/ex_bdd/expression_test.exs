@@ -193,6 +193,7 @@ defmodule ExBdd.ExpressionTest do
   end
 
   describe "match/2 with {atom} parameter" do
+    # @scenario specs/behaviours/parameters.feature: Atom parameter extraction
     test "matches and converts atom" do
       compiled = Expression.compile("status is {atom}")
 
@@ -240,6 +241,7 @@ defmodule ExBdd.ExpressionTest do
       assert {:match, [5]} = Expression.match("I have 5 items", compiled)
     end
 
+    # @scenario specs/behaviours/parameters.feature: Optional parameter arrives as nil when absent
     test "returns nil when optional parameter is absent" do
       compiled = Expression.compile("I have {int?}items")
 
@@ -255,6 +257,7 @@ defmodule ExBdd.ExpressionTest do
   end
 
   describe "match/2 with optional text" do
+    # @scenario specs/behaviours/parameters.feature: Optional text for pluralization
     test "matches with optional text present" do
       compiled = Expression.compile("I have cucumber(s)")
 
@@ -290,12 +293,14 @@ defmodule ExBdd.ExpressionTest do
   end
 
   describe "match/2 with alternation" do
+    # @scenario specs/behaviours/parameters.feature: Alternation matching
     test "matches first option" do
       compiled = Expression.compile("I click/tap the button")
 
       assert {:match, []} = Expression.match("I click the button", compiled)
     end
 
+    # @scenario specs/behaviours/parameters.feature: Alternation matches the second word of click/tap
     test "matches second option" do
       compiled = Expression.compile("I click/tap the button")
 
@@ -323,6 +328,7 @@ defmodule ExBdd.ExpressionTest do
   end
 
   describe "match/2 with escape sequences" do
+    # @scenario specs/behaviours/parameters.feature: Escaped characters in a step pattern match literal step text
     test "matches literal braces" do
       compiled = Expression.compile("I see \\{braces\\}")
 
@@ -415,6 +421,7 @@ defmodule ExBdd.ExpressionTest do
   end
 
   describe "compile/2 with custom parameter types" do
+    # @scenario specs/behaviours/custom_parameter_types.feature: an untransformed enum parameter
     test "a custom type without transform yields the matched string" do
       types = %{"color" => %{regexp: ~r/red|blue|green/, transform: nil}}
       compiled = Expression.compile("a {color} wall", types)
@@ -423,6 +430,7 @@ defmodule ExBdd.ExpressionTest do
       assert :no_match = Expression.match("a yellow wall", compiled)
     end
 
+    # @scenario specs/behaviours/parameters.feature: A custom parameter type without capture groups gets the whole match
     test "a transform with no capture groups receives the full match" do
       types = %{"shouty" => %{regexp: ~r/[A-Z]+/, transform: &String.downcase/1}}
       compiled = Expression.compile("I yell {shouty}", types)
@@ -482,6 +490,36 @@ defmodule ExBdd.ExpressionTest do
     test "compile/1 still raises UndefinedParameterTypeError for unregistered types" do
       assert_raise ExBdd.UndefinedParameterTypeError, fn ->
         Expression.compile("a {hovercraft} full of eels", %{})
+      end
+    end
+  end
+
+  describe "count_capture_groups/1" do
+    test "counts named, single-quoted named, and Python-style named groups" do
+      assert Expression.count_capture_groups("(?<name>a)(?'other'b)(?P<third>c)") == 3
+    end
+
+    test "does not count lookbehind, lookahead, or non-capturing groups" do
+      assert Expression.count_capture_groups("(?<=a)(?<!b)(?=c)(?:d)") == 0
+    end
+
+    test "counts plain groups and ignores parentheses in classes and escapes" do
+      assert Expression.count_capture_groups("(a)[(]\\(") == 1
+    end
+  end
+
+  describe "match/2 with a required parameter left over" do
+    test "fails when the text ends before the parameter" do
+      compiled = Expression.compile("I have {int} items")
+
+      assert Expression.match("I have ", compiled) == :no_match
+    end
+  end
+
+  describe "compile/1 with a malformed expression" do
+    test "raises when the expression cannot be parsed" do
+      assert_raise RuntimeError, ~r/Failed to parse expression/, fn ->
+        Expression.compile("I have {int")
       end
     end
   end

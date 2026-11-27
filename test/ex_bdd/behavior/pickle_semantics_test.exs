@@ -83,4 +83,33 @@ defmodule ExBdd.PickleSemanticsTest do
     assert count(run.events, :background_step) == 1
     assert count(run.events, :scenario_step) == 1
   end
+
+  defmodule CountedSteps do
+    @moduledoc false
+    use ExBdd.StepDefinition
+
+    step "a counted step", _context do
+      Collector.record(:counted)
+      :ok
+    end
+  end
+
+  describe "But steps" do
+    # @scenario specs/behaviours/simple.feature: But steps run like And steps
+    test "a But step runs like an And step" do
+      run =
+        ExBdd.BehaviorCase.run_feature(
+          """
+          Feature: But steps
+            Scenario: a but step after a given step
+              Given a counted step
+              But a counted step
+          """,
+          steps: [CountedSteps]
+        )
+
+      assert run.failures == 0
+      assert ExBdd.BehaviorCase.count(run.events, :counted) == 2
+    end
+  end
 end

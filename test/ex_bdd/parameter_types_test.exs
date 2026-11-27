@@ -58,4 +58,16 @@ defmodule ExBdd.ParameterTypesTest do
       end
     end
   end
+
+  describe "parameter_type/2 names that are not atoms or strings" do
+    test "a numeric name raises at compile time" do
+      assert_raise CompileError, ~r/must be an atom or string, got: 42/, fn ->
+        defmodule NumericNameTypes do
+          use ExBdd.ParameterTypes
+
+          parameter_type(42, regexp: ~r/\d+/)
+        end
+      end
+    end
+  end
 end

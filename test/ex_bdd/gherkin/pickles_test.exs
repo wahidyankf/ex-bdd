@@ -95,6 +95,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "backgrounds" do
+    # @scenario specs/behaviours/rules.feature: both backgrounds apply
     test "feature background steps come first and are marked; rule backgrounds are not" do
       %{pickles: [pickle]} =
         compile("""
@@ -196,6 +197,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "scenario outlines" do
+    # @scenario specs/behaviours/advanced_features.feature: Placeholders fill a docstring and a data table
     test "one pickle per examples row, across blocks, with substitution everywhere" do
       %{document: document, pickles: pickles} =
         compile("""
@@ -331,6 +333,7 @@ defmodule ExBdd.Gherkin.PicklesTest do
   end
 
   describe "tags" do
+    # @scenario specs/behaviours/scenario_outline.feature: Tagged example
     test "pickle tags collect every level with document references" do
       %{document: document, pickles: [pickle]} =
         compile("""
@@ -451,5 +454,61 @@ defmodule ExBdd.Gherkin.PicklesTest do
         assert id in doc_ids
       end
     end
+  end
+
+  describe "steps with no recognised keyword" do
+    test "a star step compiles to an unknown step type" do
+      %{pickles: [pickle]} =
+        compile("""
+        Feature: stars
+          Scenario: star
+            * a starred step
+        """)
+
+      assert [%PickleStep{text: "a starred step", type: :unknown}] = pickle.steps
+    end
+  end
+
+  describe "examples without recorded lines" do
+    test "rows fall back to consecutive lines after their examples block" do
+      %{document: document} = outline_without_lines(5)
+      [%{scenario: outline_node}] = document.children
+      [examples_node] = outline_node.examples
+
+      assert examples_node.tableHeader.location.line == 7
+      assert Enum.map(examples_node.tableBody, & &1.location.line) == [8, 9]
+    end
+
+    test "rows with no owning line are located at line 1" do
+      %{document: document} = outline_without_lines(nil)
+      [%{scenario: outline_node}] = document.children
+      [examples_node] = outline_node.examples
+
+      assert examples_node.tableHeader.location.line == 1
+      assert Enum.map(examples_node.tableBody, & &1.location.line) == [1, 1]
+    end
+  end
+
+  defp outline_without_lines(examples_line) do
+    feature =
+      """
+      Feature: outline
+        Scenario Outline: outline
+          Given I have <count> cukes
+          Examples:
+            | count |
+            | 1     |
+            | 2     |
+      """
+      |> Parser.parse()
+      |> Map.put(:file, "test/fixtures/generated/pickles_test.feature")
+
+    [outline] = feature.scenarios
+    [examples] = outline.examples
+
+    stripped = %{examples | line: examples_line, table_header_line: nil, table_body_lines: nil}
+
+    %{feature | scenarios: [%{outline | examples: [stripped]}]}
+    |> Pickles.compile()
   end
 end

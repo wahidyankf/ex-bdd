@@ -107,6 +107,7 @@ defmodule ExBdd.StepRegistryTest do
   end
 
   describe "new/2" do
+    # @scenario specs/behaviours/shared_steps_integration.feature: Using shared authentication steps
     test "orders definitions by file and line, whatever order the modules arrive in" do
       registry = StepRegistry.new([CukeSteps, TopSteps])
 
@@ -157,6 +158,7 @@ defmodule ExBdd.StepRegistryTest do
       end
     end
 
+    # @scenario specs/behaviours/parameters.feature: A step with an unregistered parameter type is reported undefined
     test "drops a definition using an undefined parameter type, with a warning" do
       {registry, warning} =
         with_io(:stderr, fn -> StepRegistry.new([UndefinedTypeSteps, CukeSteps]) end)
@@ -178,6 +180,8 @@ defmodule ExBdd.StepRegistryTest do
   end
 
   describe "match/2" do
+    # @scenario specs/behaviours/shared_steps_integration.feature: Shared steps with different parameters
+    # @scenario specs/behaviours/parameters.feature: Testing different parameter types
     test "matches a cucumber expression and converts typed args" do
       registry = StepRegistry.new([CukeSteps])
 
@@ -185,6 +189,7 @@ defmodule ExBdd.StepRegistryTest do
                StepRegistry.match(registry, "I have 42 cukes")
     end
 
+    # @scenario specs/behaviours/custom_parameter_types.feature: a transformed route parameter
     test "applies custom parameter type transforms" do
       registry = StepRegistry.new([ColorSteps], [ColorTypes])
 
@@ -205,6 +210,8 @@ defmodule ExBdd.StepRegistryTest do
       assert StepRegistry.match(registry, "there are no captures here at all") == :undefined
     end
 
+    # @scenario specs/behaviours/regex_steps.feature: optional regex groups are nil when absent
+    # @scenario specs/behaviours/regex_steps.feature: regex captures arrive as strings
     test "regex captures arrive as strings, with nil for unmatched optional groups" do
       registry = StepRegistry.new([RegexSteps])
 
@@ -271,6 +278,7 @@ defmodule ExBdd.StepRegistryTest do
       assert StepRegistry.resolve(registry, "the light is green") == :undefined
     end
 
+    # @scenario specs/behaviours/parameters.feature: The expression API returns typed arguments for matching text
     test "args/2 converts the resolved definition's args, running transforms" do
       registry = StepRegistry.new([ColorSteps, RegexSteps], [ColorTypes])
 

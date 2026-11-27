@@ -1,6 +1,10 @@
 defmodule GlobalHooksSupport do
   use ExBdd.Hooks
 
+  before_scenario context do
+    {:ok, Map.put(context, :global_before_ran, true)}
+  end
+
   before_all context, name: "start run-level services" do
     # Unlinked so it survives this (short-lived) calling process; the agent
     # lives for the rest of the run.

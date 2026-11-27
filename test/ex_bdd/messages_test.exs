@@ -113,14 +113,14 @@ defmodule ExBdd.MessagesTest do
     end
   end
 
-  describe "meta/0" do
+  describe "meta/2" do
     test "describes the implementation, runtime, os, and cpu" do
-      assert %{meta: meta} = Messages.meta()
+      assert %{meta: meta} = Messages.meta("1.18.4", {:unix, :linux})
 
       assert meta.protocolVersion =~ ~r/^\d+\.\d+\.\d+$/
       assert meta.implementation.name == "ex-bdd"
       assert meta.implementation.version =~ ~r/^\d+\.\d+\.\d+/
-      assert meta.runtime == %{name: "Elixir", version: System.version()}
+      assert meta.runtime == %{name: "Elixir", version: "1.18.4"}
       assert is_binary(meta.os.name)
       assert is_binary(meta.cpu.name)
     end
@@ -234,6 +234,7 @@ defmodule ExBdd.MessagesTest do
   end
 
   describe "run and test case envelopes" do
+    # @scenario specs/behaviours/messages_stream.feature: ExBdd.Messages builders produce Cucumber Messages envelopes
     test "testRunStarted and testRunFinished reference each other" do
       ts = Messages.timestamp(0)
 
@@ -382,5 +383,50 @@ defmodule ExBdd.MessagesTest do
       assert %{"pickle" => %{"astNodeIds" => [_], "steps" => [step]}} = decoded
       assert %{"id" => _, "text" => "a step", "type" => "Context", "astNodeIds" => [_]} = step
     end
+  end
+
+  describe "pickle step types and argument shapes" do
+    test "an outcome step is typed Outcome and an unrecognised step Unknown" do
+      envelope =
+        """
+        Feature: outcomes
+          Scenario: typed steps
+            Given a start
+            Then a result
+            * a starred step
+        """
+        |> compile_pickle()
+        |> Messages.pickle()
+
+      assert %{pickle: %{steps: [%{type: "Context"}, %{type: "Outcome"}, %{type: "Unknown"}]}} =
+               envelope
+    end
+
+    test "a docstring without a media type carries its content only" do
+      envelope =
+        """
+        Feature: docs
+          Scenario: a document
+            Given a document
+              \"\"\"
+              hello
+              \"\"\"
+        """
+        |> compile_pickle()
+        |> Messages.pickle()
+
+      assert %{pickle: %{steps: [%{argument: argument}]}} = envelope
+      assert argument == %{docString: %{content: "hello"}}
+    end
+  end
+
+  defp compile_pickle(source) do
+    %{pickles: [pickle]} =
+      source
+      |> Parser.parse()
+      |> Map.put(:file, "features/demo.feature")
+      |> Pickles.compile()
+
+    pickle
   end
 end

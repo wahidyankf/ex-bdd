@@ -35,3 +35,7 @@ relinks each gate's companions, and runs its searches, per the contract's
 - [Rules Propagation](rules-propagation.md)
 - [Rules Propagation Modules](rules-propagation/README.md)
 - [Rules Quality Gate](rules-quality-gate.md)
+- [Exploratory and Usability Review](exploratory-usability-review.md) — Runs one bounded exploratory and usability pass
+  over declared tasks, recording observations, failures, and a terminal result.
+- [Gherkin Implementation Review](gherkin-implementation-review.md) — Compares written Gherkin acceptance scenarios
+  against what the implementation and its tests actually do.

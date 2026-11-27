@@ -13,4 +13,10 @@ defmodule RetrySteps do
 
     :ok
   end
+
+  step "a step that fails only on its first attempt", context do
+    if context.retry_attempt == 1, do: raise("first attempt fails on purpose")
+    if context.retry_attempt != 2, do: raise("expected the second attempt")
+    :ok
+  end
 end

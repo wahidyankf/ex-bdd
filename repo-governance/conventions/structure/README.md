@@ -42,3 +42,15 @@ before opening it and a validator can check that prediction mechanically.
 - [Stack Packs](stack-packs.md)
 - [Stack Packs Modules](stack-packs/README.md) — the repository adapter template and inventory extension
 - [Temporary Files](temporary-files.md)
+- [Monorepo Layout](monorepo-layout.md) — Fixes the dependency direction inside a monorepo, where applications consume
+  libraries and libraries form no cycle, and keeps each project's code, tests, and imports within its own boundary.
+- [Plan Migrations Modules](plan-migrations/README.md) — the modules on Source Inventory and Contracts
+- [Plan Specification Changes](plan-specification-changes.md) — Requires a plan that changes behaviour, interfaces, or
+  architecture to state its specification delta file by file, keeping proposed design apart from as-built
+  specifications.
+- [Plan Validator Contract Modules](plan-validator-contract/README.md) — the modules on Exclusions
+- [Project READMEs](project-readmes.md) — Requires a README at the root of every application and library project, fixes
+  what it covers, and keeps interface detail in the specification it links to.
+- [Specification Tree](specification-tree.md) — Fixes one specification corpus per logical owner, each holding an index,
+  an as-built architecture document, and a tree of behaviour specifications, executable features in the fully specified
+  case.

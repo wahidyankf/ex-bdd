@@ -58,7 +58,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          "test/features/case_template_#{System.unique_integer([:positive])}.feature"
+          "test/features/case_template.feature"
         )
 
       registry = ExBdd.StepRegistry.new([], [])
@@ -85,12 +85,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          Path.join([
-            System.tmp_dir!(),
-            "ex-bdd",
-            "nested specs",
-            "home-page_#{System.unique_integer([:positive])}.feature"
-          ])
+          "/ex-bdd/nested specs/home-page.feature"
         )
 
       registry = ExBdd.StepRegistry.new([], [])
@@ -129,7 +124,7 @@ defmodule ExBdd.CompilerTest do
         Map.put(
           feature,
           :file,
-          "test/features/discovery_template_#{System.unique_integer([:positive])}.feature"
+          "test/features/discovery_template.feature"
         )
 
       discovery = %ExBdd.Discovery.DiscoveryResult{
@@ -146,6 +141,44 @@ defmodule ExBdd.CompilerTest do
       {result, _output} = ExBdd.BehaviorCase.run_isolated([module])
       assert result.total == 1
       assert result.failures == 0
+    end
+  end
+
+  describe "compile_all!/5 with feature files that would share a test module" do
+    test "rejects both files and names them and the module they would generate" do
+      features = [
+        Map.put(
+          %Feature{name: "checkout", scenarios: [], tags: []},
+          :file,
+          "features/checkout.feature"
+        ),
+        Map.put(
+          %Feature{name: "checkout", scenarios: [], tags: []},
+          :file,
+          "features/checkout.feature.md"
+        )
+      ]
+
+      registry = ExBdd.StepRegistry.new([], [])
+
+      error =
+        assert_raise ArgumentError, ~r/would generate the same test module/, fn ->
+          ExBdd.Compiler.compile_all!(features, registry, [], nil, [])
+        end
+
+      assert error.message =~ "features/checkout.feature and features/checkout.feature.md"
+    end
+  end
+
+  describe "compile_discovery!/1" do
+    test "compiles nothing and returns no modules for a discovery with no features" do
+      discovery = %ExBdd.Discovery.DiscoveryResult{
+        features: [],
+        step_registry: ExBdd.StepRegistry.new([]),
+        hook_modules: []
+      }
+
+      assert ExBdd.Compiler.compile_discovery!(discovery) == []
     end
   end
 end

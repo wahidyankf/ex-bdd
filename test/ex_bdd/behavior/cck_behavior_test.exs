@@ -272,6 +272,7 @@ defmodule ExBdd.CckBehaviorTest do
   end
 
   describe "CCK: doc-strings" do
+    # @scenario specs/behaviours/descriptions.feature: backtick docstring with a media type
     test "standard, backtick, and media-typed docstrings all reach the step" do
       run = run_feature(fixture("doc-strings"), steps: [DocStringSteps])
 

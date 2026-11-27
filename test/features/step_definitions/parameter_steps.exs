@@ -67,4 +67,49 @@ defmodule ParameterSteps do
     assert context[:interacted] != nil
     context
   end
+
+  step "the carton holds {int?} eggs", %{args: [count]} = context do
+    Map.put(context, :eggs, count)
+  end
+
+  step "the egg count is nil", context do
+    assert context[:eggs] == nil
+    context
+  end
+
+  step "the egg count is {int}", %{args: [expected]} = context do
+    assert context[:eggs] == expected
+    context
+  end
+
+  step "a literal \\{brace\\} and a path\\/to\\/file with call\\(\\)", context do
+    Map.put(context, :literal_step, true)
+  end
+
+  step "the literal step has run", context do
+    assert context[:literal_step] == true
+    context
+  end
+
+  step "seat {seat} is reserved", %{args: [seat]} = context do
+    Map.put(context, :reserved, seat)
+  end
+
+  step "the reserved seat is {string}", %{args: [expected]} = context do
+    assert context.reserved == %{seat: expected}
+    context
+  end
+
+  step "the expression {string} is compiled", %{args: [pattern]} = context do
+    Map.put(context, :compiled, ExBdd.Expression.compile(pattern))
+  end
+
+  step "the compiled expression matches {string}", %{args: [text]} = context do
+    Map.put(context, :match_result, ExBdd.Expression.match(text, context.compiled))
+  end
+
+  step "the match result is {string}", %{args: [expected]} = context do
+    assert inspect(context.match_result, charlists: :as_lists) == expected
+    context
+  end
 end

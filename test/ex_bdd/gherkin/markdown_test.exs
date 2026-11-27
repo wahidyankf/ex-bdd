@@ -1,619 +1,299 @@
-defmodule ExBdd.Gherkin.MarkdownTest do
+defmodule ExBdd.Gherkin.MarkdownUnitTest do
   use ExUnit.Case, async: true
 
-  alias ExBdd.Gherkin.{Markdown, Parser}
+  alias ExBdd.Gherkin.{Markdown, ParseError, Rule, Scenario, Step}
 
-  describe "parse/2 dispatch" do
-    test ".feature.md paths parse as Markdown, others as plain Gherkin" do
-      markdown = "# Feature: MD\n\n## Scenario: s\n\n* Given a step\n"
-      plain = "Feature: Plain\n\nScenario: s\n  Given a step\n"
+  describe "where a feature starts" do
+    test "a first line that is not a Feature heading becomes the feature name" do
+      feature = Markdown.parse("Plain title\n## Scenario: s\n* Given a step\n")
 
-      assert %ExBdd.Gherkin.Feature{name: "MD"} =
-               Parser.parse(markdown, "cheese.feature.md")
-
-      assert %ExBdd.Gherkin.Feature{name: "Plain"} =
-               Parser.parse(plain, "cheese.feature")
-    end
-  end
-
-  describe "the CCK markdown sample" do
-    test "parses with the reference structure and source line numbers" do
-      feature = Markdown.parse(File.read!("test/fixtures/cck/markdown/markdown.feature.md"))
-
-      assert feature.name == "Cheese"
-      assert feature.line == 0
-      assert feature.description == ""
-      assert feature.comments == []
-      assert feature.scenarios == []
-
-      assert [rule] = feature.rules
-      assert rule.name == "Nom nom nom"
-      assert rule.line == 9
-
-      assert [outline] = rule.scenarios
-      assert outline.keyword == "Scenario Outline"
-      assert outline.name == "Ylajali!"
-      assert outline.line == 13
-
-      assert [given, conjunction, when_step, then_step] = outline.steps
-
-      assert %{keyword: "Given", text: "some TypeScript code:", line: 15} = given
-      assert given.docstring == "type Cheese = 'reblochon' | 'roquefort' | 'rocamadour'"
-      assert given.docstring_media_type == "typescript"
-      assert given.docstring_line == 16
-      assert given.docstring_delimiter == "```"
-
-      assert %{keyword: "And", text: "some classic Gherkin:", line: 19} = conjunction
-      assert conjunction.docstring == "Given there are 24 apples in Mary's basket"
-      assert conjunction.docstring_media_type == "gherkin"
-
-      assert when_step.text == "we use a data table and attach something and then <what>"
-      # The GFM separator row (line 25 in the file) is excluded; the
-      # remaining rows keep their real source lines.
-      assert when_step.datatable == [["name", "age"], ["Bill", "3"], ["Jane", "6"], ["Isla", "5"]]
-      assert when_step.datatable_lines == [24, 26, 27, 28]
-
-      assert %{keyword: "Then", text: "this might or might not run", line: 29} = then_step
-
-      assert [examples] = outline.examples
-      assert examples.name == "because we need more tables"
-      assert examples.line == 31
-      assert examples.table_header == ["what"]
-      assert examples.table_header_line == 35
-      assert examples.table_body == [["fail"], ["pass"]]
-      assert examples.table_body_lines == [37, 38]
-    end
-  end
-
-  describe "section headings" do
-    test "heading level is decorative — keywords alone define nesting" do
-      feature =
-        Markdown.parse("""
-        ###### Feature: Deep
-        # Scenario: level does not matter
-        * Given a step
-        """)
-
-      assert feature.name == "Deep"
-      assert [%{name: "level does not matter", steps: [_]}] = feature.scenarios
+      assert feature.name == "Plain title"
     end
 
-    test "keyword synonyms: Example, Scenario Template, Scenarios" do
-      feature =
-        Markdown.parse("""
-        # Feature: Synonyms
-        ## Example: a concrete example
-        * Given a step
-        ## Scenario Template: a template
-        * Given a <thing>
-        ### Scenarios: values
-          | thing |
-          | boat  |
-        """)
+    test "a first line with another Gherkin keyword heading keeps the whole line as the name" do
+      feature = Markdown.parse("# Scenario: early\n## Scenario: s\n* Given a step\n")
 
-      assert [scenario, outline] = feature.scenarios
-      assert %ExBdd.Gherkin.Scenario{keyword: "Example", name: "a concrete example"} = scenario
-      assert %ExBdd.Gherkin.ScenarioOutline{keyword: "Scenario Template"} = outline
-
-      assert [%ExBdd.Gherkin.Examples{keyword: "Scenarios", table_header: ["thing"]}] =
-               outline.examples
+      assert feature.name == "# Scenario: early"
     end
 
-    test "headings without a Gherkin keyword are prose" do
-      feature =
-        Markdown.parse("""
-        # Feature: Prose headings
-        ## Notes
-        ### Scenario: still found
-        * Given a step
-        """)
+    test "a GFM separator row before the feature is skipped" do
+      feature = Markdown.parse("|---|---|\n# Feature: f\n## Scenario: s\n* Given a step\n")
 
-      assert [%{name: "still found"}] = feature.scenarios
+      assert feature.name == "f"
     end
 
-    test "a second Feature heading is ignored" do
-      feature =
-        Markdown.parse("""
-        # Feature: First
-        # Feature: Second
-        ## Scenario: s
-        * Given a step
-        """)
+    test "a second Feature heading is ignored and the first name is kept" do
+      feature = Markdown.parse("# Feature: one\n# Feature: two\n## Scenario: s\n* Given a step\n")
 
-      assert feature.name == "First"
-      assert [%{name: "s"}] = feature.scenarios
-    end
-
-    test "rules group scenarios and can have their own background" do
-      feature =
-        Markdown.parse("""
-        # Feature: Rules
-        ## Background:
-        * Given feature setup
-        ## Scenario: bare
-        * Given a step
-        ## Rule: first rule
-        ### Background:
-        * Given rule setup
-        ### Scenario: ruled
-        * Given another step
-        """)
-
-      assert [%{name: "bare"}] = feature.scenarios
-      assert feature.background.steps |> hd() |> Map.get(:text) == "feature setup"
-
-      assert [rule] = feature.rules
-      assert rule.name == "first rule"
-      assert rule.background.steps |> hd() |> Map.get(:text) == "rule setup"
-      assert [%{name: "ruled"}] = rule.scenarios
-    end
-  end
-
-  describe "the feature line" do
-    test "a non-heading first line becomes the feature name (reference fallback)" do
-      feature =
-        Markdown.parse("""
-        Just some notes
-        ## Scenario: s
-        * Given a step
-        """)
-
-      assert feature.name == "Just some notes"
-      assert feature.line == 0
-      assert [%{name: "s"}] = feature.scenarios
-    end
-
-    test "a non-Gherkin heading first line is taken whole, hashes included" do
-      feature = Markdown.parse("# Hello world\n")
-      assert feature.name == "# Hello world"
-    end
-
-    test "a blank first line becomes an unnamed feature" do
-      feature = Markdown.parse("\n# Feature: too late\n## Scenario: s\n* Given a step\n")
-      assert feature.name == ""
-      assert [%{name: "s"}] = feature.scenarios
-    end
-
-    test "a non-Feature Gherkin heading as the first line also falls back to the whole line" do
-      feature =
-        Markdown.parse("""
-        ## Scenario: taken as the feature name
-        ## Scenario: a real scenario
-        * Given a step
-        """)
-
-      assert feature.name == "## Scenario: taken as the feature name"
-      assert [%{name: "a real scenario", steps: [_]}] = feature.scenarios
-    end
-  end
-
-  describe "steps" do
-    test "asterisk, dash, and plus bullets all introduce steps" do
-      feature =
-        Markdown.parse("""
-        # Feature: Bullets
-        ## Scenario: s
-        * Given a star step
-        - When a dash step
-        + Then a plus step
-          * And an indented step
-        * But a but step
-        """)
-
-      [scenario] = feature.scenarios
-
-      assert Enum.map(scenario.steps, &{&1.keyword, &1.text, &1.line}) == [
-               {"Given", "a star step", 2},
-               {"When", "a dash step", 3},
-               {"Then", "a plus step", 4},
-               {"And", "an indented step", 5},
-               {"But", "a but step", 6}
-             ]
-    end
-
-    test "bullets without a step keyword are prose, including the * keyword" do
-      feature =
-        Markdown.parse("""
-        # Feature: Lists
-        ## Scenario: s
-        * Given a real step
-        * just a list item
-        * * the star keyword is not available in Markdown
-        - Givenwithoutspace is not a keyword
-        """)
-
-      [scenario] = feature.scenarios
-      assert [%{text: "a real step"}] = scenario.steps
-    end
-
-    test "a step containing an inline tag span is still a step" do
-      feature =
-        Markdown.parse("""
-        # Feature: Inline spans
-        ## Scenario: s
-        * Given I run the `@daily` job
-        * Then done
-        """)
-
-      [scenario] = feature.scenarios
-      assert Enum.map(scenario.steps, & &1.text) == ["I run the `@daily` job", "done"]
-      assert scenario.tags == []
-    end
-
-    test "a step before any Scenario or Background raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/line 2.*Scenario or Background/s, fn ->
-        Markdown.parse("""
-        # Feature: Loose step
-        * Given a step with no home
-        """)
-      end
-    end
-
-    test "a step after an Examples table raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/before the Examples/s, fn ->
-        Markdown.parse("""
-        # Feature: Late step
-        ## Scenario Outline: o
-        * Given a <thing>
-        ### Examples:
-          | thing |
-          | boat  |
-        * When too late
-        """)
-      end
-    end
-  end
-
-  describe "data tables" do
-    test "rows indented two to five spaces attach to the step; others are prose" do
-      feature =
-        Markdown.parse("""
-        # Feature: Tables
-        ## Scenario: s
-        * Given a table:
-          | two spaces |
-             | five spaces |
-              | six spaces is prose |
-        | no indent is prose |
-        """)
-
-      [%{steps: [step]}] = feature.scenarios
-      assert step.datatable == [["two spaces"], ["five spaces"]]
-      assert step.datatable_lines == [3, 4]
-    end
-
-    test "GFM separator rows are skipped, alignment colons included" do
-      feature =
-        Markdown.parse("""
-        # Feature: Separators
-        ## Scenario: s
-        * Given a table:
-          | name | age |
-          | :--- | --: |
-          | Bill |   3 |
-        """)
-
-      [%{steps: [step]}] = feature.scenarios
-      assert step.datatable == [["name", "age"], ["Bill", "3"]]
-      assert step.datatable_lines == [3, 5]
-    end
-
-    test "empty cells keep their column, in data tables and Examples" do
-      feature =
-        Markdown.parse("""
-        # Feature: Empty cells
-        ## Scenario Outline: s
-        * Given these products:
-          | name    | flavor | size |
-          | ------- | ------ | ---- |
-          | Doritos |        | 9 oz |
-          |         | Nacho  |      |
-        * Then the flavor is "<flavor>"
-        ### Examples:
-          | name    | flavor |
-          | ------- | ------ |
-          | Doritos |        |
-        """)
-
-      [%{steps: [step, _], examples: [examples]}] = feature.scenarios
-
-      assert step.datatable == [
-               ["name", "flavor", "size"],
-               ["Doritos", "", "9 oz"],
-               ["", "Nacho", ""]
-             ]
-
-      assert examples.table_body == [["Doritos", ""]]
-    end
-
-    test "a row whose cell count differs from the first row raises at that row" do
-      error =
-        assert_raise ExBdd.Gherkin.ParseError, fn ->
-          Markdown.parse("""
-          # Feature: Ragged
-          ## Scenario: s
-          * Given these products:
-            | name    | flavor | size |
-            | Doritos | Nacho  |
-          """)
-        end
-
-      assert error.line == 5
-      assert error.column == 3
-      assert error.rest == "| Doritos | Nacho  |"
-      assert Exception.message(error) =~ "3 cells to match the first row, got 2"
-    end
-
-    test "cells unescape \\|, \\\\ and \\n like .feature tables" do
-      feature =
-        Markdown.parse(~S"""
-        # Feature: Escapes
-        ## Scenario: s
-        * Given these cells:
-          | a \| b | c\\d | e\nf | g\h |
-        """)
-
-      [%{steps: [step]}] = feature.scenarios
-      assert step.datatable == [["a | b", "c\\d", "e\nf", "g\\h"]]
-    end
-
-    test "an indented table row with nothing to attach to raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/before a table row/s, fn ->
-        Markdown.parse("""
-        # Feature: Orphan table
-        ## Scenario: s
-          | orphan |
-        """)
-      end
-    end
-  end
-
-  describe "docstrings" do
-    test "a fenced code block under a step becomes its docstring" do
-      feature =
-        Markdown.parse("""
-        # Feature: Fences
-        ## Scenario: s
-        * Given some code:
-          ```elixir
-          defmodule Deep do
-            :nested
-          end
-          ```
-        * And plain text:
-          ```
-          no media type
-          ```
-        """)
-
-      [%{steps: [given, conjunction]}] = feature.scenarios
-
-      # Content is dedented by the fence's own indentation, preserving
-      # deeper relative indentation.
-      assert given.docstring == "defmodule Deep do\n  :nested\nend"
-      assert given.docstring_media_type == "elixir"
-      assert given.docstring_line == 3
-      assert given.docstring_delimiter == "```"
-
-      assert conjunction.docstring == "no media type"
-      assert conjunction.docstring_media_type == nil
-    end
-
-    test "a longer fence wraps a shorter one literally" do
-      feature =
-        Markdown.parse("""
-        # Feature: Nested fences
-        ## Scenario: s
-        * Given markdown about markdown:
-          ````markdown
-          ```
-          inner
-          ```
-          ````
-        """)
-
-      [%{steps: [step]}] = feature.scenarios
-      assert step.docstring == "```\ninner\n```"
-      assert step.docstring_delimiter == "````"
-    end
-
-    test "a fenced code block in prose is skipped, even when it contains step bullets" do
-      feature =
-        Markdown.parse("""
-        # Feature: Prose fences
-        How to write a step:
-        ```markdown
-        * Given a step that must not parse
-        ```
-        ## Scenario: s
-        * Given the only real step
-        """)
-
-      [%{steps: [step]}] = feature.scenarios
-      assert step.text == "the only real step"
-    end
-
-    test "a second fenced code block on one step raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/single docstring/s, fn ->
-        Markdown.parse("""
-        # Feature: Greedy step
-        ## Scenario: s
-        * Given code:
-          ```
-          one
-          ```
-          ```
-          two
-          ```
-        """)
-      end
-    end
-
-    test "an unclosed fence raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/closing ``` fence/s, fn ->
-        Markdown.parse("""
-        # Feature: Unclosed
-        ## Scenario: s
-        * Given code:
-          ```
-          never closed
-        """)
-      end
-    end
-  end
-
-  describe "examples tables" do
-    test "multiple Examples blocks with names and tags" do
-      feature =
-        Markdown.parse("""
-        # Feature: Outlines
-        ## Scenario Outline: o
-        * Given a <thing>
-
-        ### Examples: watercraft
-          | thing |
-          | ----- |
-          | boat  |
-
-        `@lorries`
-        ### Examples: road vehicles
-          | thing |
-          | truck |
-        """)
-
-      [outline] = feature.scenarios
-      assert [watercraft, road] = outline.examples
-
-      assert watercraft.name == "watercraft"
-      assert watercraft.table_header == ["thing"]
-      assert watercraft.table_header_line == 5
-      assert watercraft.table_body == [["boat"]]
-      assert watercraft.table_body_lines == [7]
-
-      assert road.name == "road vehicles"
-      assert road.tags == ["lorries"]
-      assert road.tag_lines == [9]
-      assert road.table_body == [["truck"]]
-    end
-
-    test "an Examples heading outside a Scenario Outline raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/Scenario Outline before an Examples/s, fn ->
-        Markdown.parse("""
-        # Feature: Misplaced
-        ## Scenario: not an outline
-        * Given a step
-        ### Examples:
-          | thing |
-        """)
-      end
-    end
-  end
-
-  describe "backgrounds" do
-    test "a Background after the first scenario raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/Background before the first Scenario/s, fn ->
-        Markdown.parse("""
-        # Feature: Late background
-        ## Scenario: s
-        * Given a step
-        ## Background:
-        * Given too late
-        """)
-      end
-    end
-
-    test "a second Background raises" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/single Background/s, fn ->
-        Markdown.parse("""
-        # Feature: Two backgrounds
-        ## Background:
-        * Given one
-        ## Background:
-        * Given two
-        """)
-      end
-    end
-
-    test "a tag before a Background raises instead of leaking onto the next scenario" do
-      assert_raise ExBdd.Gherkin.ParseError, ~r/line 2.*no tags before a Background/s, fn ->
-        Markdown.parse("""
-        # Feature: Tagged background
-        `@wip`
-        ## Background:
-        * Given setup
-        ## Scenario: s
-        * Given a step
-        """)
-      end
+      assert feature.name == "one"
     end
   end
 
   describe "tags" do
-    test "backticked tags attach to the next section; bare @tags are prose" do
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/gherkin_parse.feature: .feature.md headings at any level, fences, and inline-code tags parse
+    test "a tag line before a scenario tags that scenario" do
       feature =
-        Markdown.parse("""
-        `@billing` `@critical`
-        # Feature: Tagged
+        Markdown.parse(
+          Enum.join(
+            ["# Feature: f", "`@wip` `@slow`", "## Scenario: s", "* Given a step"],
+            "\n"
+          )
+        )
 
-        @prose is not a tag
-
-        `@wip`
-        `@slow`
-        ## Scenario: s
-        * Given a step
-
-        `@ruled`
-        ## Rule: r
-        ### Scenario: inside
-        * Given a step
-        """)
-
-      assert feature.tags == ["billing", "critical"]
-      assert feature.tag_lines == [0, 0]
-
-      [scenario] = feature.scenarios
-      assert scenario.tags == ["wip", "slow"]
-      assert scenario.tag_lines == [5, 6]
-
-      [rule] = feature.rules
-      assert rule.tags == ["ruled"]
-    end
-
-    test "prose that merely mentions a tag span is prose, not a tag line" do
-      feature =
-        Markdown.parse("""
-        # Feature: Prose mentions
-        Use `@wip` to mark work in progress.
-        ## Scenario: s
-        * Given a step
-        """)
-
-      assert feature.tags == []
-      assert [%{tags: [], steps: [_]}] = feature.scenarios
+      assert [%Scenario{name: "s", tags: ["wip", "slow"]}] = feature.scenarios
     end
   end
 
-  describe "descriptions and comments" do
-    test "prose is ignored: descriptions stay empty and there are no comments" do
+  describe "rules" do
+    test "each rule collects its own scenarios and closes when the next rule starts" do
       feature =
-        Markdown.parse("""
-        # Feature: Prose
-        Everything here is prose.
+        Markdown.parse(
+          Enum.join(
+            [
+              "# Feature: f",
+              "## Rule: first",
+              "### Scenario: one",
+              "* Given a step",
+              "## Rule: second",
+              "### Scenario: two",
+              "* Given another step"
+            ],
+            "\n"
+          )
+        )
 
-        | unindented | table |
-        | ---------- | ----- |
-        | is         | prose |
+      assert [
+               %Rule{name: "first", scenarios: [%Scenario{name: "one"}]},
+               %Rule{name: "second", scenarios: [%Scenario{name: "two"}]}
+             ] = feature.rules
 
-        ## Rule: r
-        Rule prose.
-        ### Scenario: s
-        Scenario prose. # not a comment either
-        * Given a step
-        """)
+      assert feature.scenarios == []
+    end
 
-      assert feature.description == ""
-      assert feature.comments == []
-      assert [%{description: "", scenarios: [%{description: ""}]}] = feature.rules
+    test "a tag line before a rule tags that rule" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            ["# Feature: f", "`@slow`", "## Rule: r", "### Scenario: s", "* Given a step"],
+            "\n"
+          )
+        )
+
+      assert [%Rule{name: "r", tags: ["slow"]}] = feature.rules
+    end
+
+    test "a background inside a rule belongs to that rule, not the feature" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            [
+              "# Feature: f",
+              "## Rule: r",
+              "## Background: setup",
+              "* Given a precondition",
+              "### Scenario: s",
+              "* Given a step"
+            ],
+            "\n"
+          )
+        )
+
+      assert feature.background == nil
+
+      assert [%Rule{background: %{name: "setup", steps: [%Step{text: "a precondition"}]}}] =
+               feature.rules
+    end
+  end
+
+  describe "backgrounds" do
+    test "a background keeps its steps in source order" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            [
+              "# Feature: f",
+              "## Background: setup",
+              "* Given a first step",
+              "* Given a second step",
+              "## Scenario: s",
+              "* Given a step"
+            ],
+            "\n"
+          )
+        )
+
+      assert %{name: "setup", steps: [%Step{text: "a first step"}, %Step{text: "a second step"}]} =
+               feature.background
+    end
+
+    test "a background after a scenario is rejected" do
+      source =
+        Enum.join(
+          [
+            "# Feature: f",
+            "## Scenario: s",
+            "* Given a step",
+            "## Background: late",
+            "* Given a step"
+          ],
+          "\n"
+        )
+
+      assert_raise ParseError, ~r/a single Background before the first Scenario/, fn ->
+        Markdown.parse(source)
+      end
+    end
+
+    test "a tag line before a background is rejected" do
+      source =
+        Enum.join(["# Feature: f", "`@wip`", "## Background: setup", "* Given a step"], "\n")
+
+      assert_raise ParseError, ~r/no tags before a Background/, fn ->
+        Markdown.parse(source)
+      end
+    end
+  end
+
+  describe "examples and outlines" do
+    test "an Examples heading outside a scenario outline is rejected" do
+      source =
+        Enum.join(
+          ["# Feature: f", "## Scenario: s", "* Given a step", "### Examples: rows", "  | a |"],
+          "\n"
+        )
+
+      assert_raise ParseError, ~r/a Scenario Outline before an Examples table/, fn ->
+        Markdown.parse(source)
+      end
+    end
+
+    test "a step after an examples table is rejected" do
+      source =
+        Enum.join(
+          [
+            "# Feature: f",
+            "## Scenario Outline: o",
+            "* Given a <value>",
+            "### Examples: values",
+            "  | value |",
+            "  | 1     |",
+            "* Given a later step"
+          ],
+          "\n"
+        )
+
+      assert_raise ParseError, ~r/steps to come before the Examples tables/, fn ->
+        Markdown.parse(source)
+      end
+    end
+  end
+
+  describe "tables" do
+    test "a table row with no step before it is rejected" do
+      source = Enum.join(["# Feature: f", "## Scenario: s", "  | a |"], "\n")
+
+      assert_raise ParseError, ~r/a step or an Examples heading before a table row/, fn ->
+        Markdown.parse(source)
+      end
+    end
+
+    test "a table under a background step attaches its rows to that step" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            [
+              "# Feature: f",
+              "## Background: setup",
+              "* Given a table",
+              "  | x | y |",
+              "  | 1 | 2 |",
+              "## Scenario: s",
+              "* Given a step"
+            ],
+            "\n"
+          )
+        )
+
+      assert [%Step{datatable: [["x", "y"], ["1", "2"]]}] = feature.background.steps
+    end
+  end
+
+  describe "docstrings" do
+    test "a fence with no info string carries no media type" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            ["# Feature: f", "## Scenario: s", "* Given a document", "```", "hello", "```"],
+            "\n"
+          )
+        )
+
+      assert [%{steps: [%Step{docstring: "hello", docstring_media_type: nil}]}] =
+               feature.scenarios
+    end
+
+    test "a content line indented less than its fence loses only its own indentation" do
+      source =
+        Enum.join(
+          [
+            "# Feature: f",
+            "## Scenario: s",
+            "* Given a document",
+            "    ```text",
+            "  short",
+            "      long",
+            "    ```"
+          ],
+          "\n"
+        )
+
+      feature = Markdown.parse(source)
+
+      assert [%{steps: [%Step{docstring: "short\n  long", docstring_media_type: "text"}]}] =
+               feature.scenarios
+    end
+
+    test "a fence outside any step is prose and adds no docstring" do
+      feature =
+        Markdown.parse(
+          Enum.join(
+            ["# Feature: f", "```", "some code", "```", "## Scenario: s", "* Given a step"],
+            "\n"
+          )
+        )
+
+      assert [%{steps: [%Step{docstring: nil}]}] = feature.scenarios
+    end
+
+    test "a second docstring for the same step is rejected" do
+      source =
+        Enum.join(
+          [
+            "# Feature: f",
+            "## Scenario: s",
+            "* Given a document",
+            "```",
+            "one",
+            "```",
+            "```",
+            "two",
+            "```"
+          ],
+          "\n"
+        )
+
+      assert_raise ParseError, ~r/a single docstring per step/, fn ->
+        Markdown.parse(source)
+      end
+    end
+
+    test "an unclosed fence is rejected at the end of the file" do
+      source = Enum.join(["# Feature: f", "```", "never closed"], "\n")
+
+      assert_raise ParseError, ~r/a closing ``` fence before the end of the file/, fn ->
+        Markdown.parse(source)
+      end
     end
   end
 end

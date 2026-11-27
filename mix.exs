@@ -21,6 +21,14 @@ defmodule ExBdd.MixProject do
       test_ignore_filters: [
         ~r/features\/step_definitions/,
         ~r/features\/support/
+      ],
+      # Unit coverage floor (99%, meaningful-coverage). The only exclusion is the test-support category:
+      # harness modules under test/support/ are test code, not shipped behaviour. No lib/ module is excluded.
+      test_coverage: [
+        summary: [threshold: 99],
+        ignore_modules: [
+          ~r/^ExBdd\.(BehaviorCase|CckApproval|CckFixtures|CckSchema|CckStream|CorpusFixtures|OnDiskRun|ReloadableHooks)(\.|$)/
+        ]
       ]
     ]
   end
@@ -31,6 +39,8 @@ defmodule ExBdd.MixProject do
         "test.watch": :test,
         precommit: :test,
         "test:quick": :test,
+        "test:integration": :test,
+        "test:e2e": :test,
         validate: :test
       ]
     ]
@@ -96,21 +106,24 @@ defmodule ExBdd.MixProject do
         "format",
         "credo --strict",
         "deps.unlock --unused",
-        "test"
+        "test --cover --exclude integration"
       ],
       "test:quick": [
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
-        "test"
+        "test --cover --exclude integration"
       ],
+      "test:integration": ["test --include integration test/integration"],
+      "test:e2e": ["test --include e2e test/e2e"],
+      "test:behaviour:coverage": ["cmd ./rhino behaviour coverage validate"],
       validate: [
         "hex.audit",
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
         "deps.unlock --check-unused",
-        "test",
+        "test --cover --exclude integration",
         "cmd bash scripts/test_release.sh",
         "cmd env MIX_ENV=dev mix do hex.build + compile --warnings-as-errors + docs --warnings-as-errors"
       ]

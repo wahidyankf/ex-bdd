@@ -86,6 +86,8 @@ defmodule ExBdd.RetryTest do
   end
 
   describe "the CCK retry sample (retry limit 2)" do
+    # @scenario specs/behaviours/retry.feature: A retry limit set in config applies to a scenario with no retry tag
+    # @scenario specs/behaviours/retry.feature: a flaky scenario eventually passes
     test "failing scenarios are retried up to the limit; passes aren't retried" do
       run =
         with_retry_config(2, fn ->
@@ -117,6 +119,8 @@ defmodule ExBdd.RetryTest do
   end
 
   describe "statuses that never retry" do
+    # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
+    # @scenario specs/behaviours/retry.feature: Undefined, ambiguous, and pending scenarios are not retried under a config limit
     test "undefined scenarios run exactly once (CCK retry-undefined)" do
       run =
         with_retry_config(2, fn ->
@@ -484,6 +488,8 @@ defmodule ExBdd.RetryTest do
       end
     end
 
+    # @scenario specs/behaviours/retry.feature: a retried attempt is numbered from one
+    # @scenario specs/behaviours/attachments.feature: Attachments show on failure and in the NDJSON stream
     test "failure output lists only the failing attempt's attachments" do
       run =
         run_feature(
