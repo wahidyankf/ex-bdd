@@ -10,4 +10,9 @@ Code.require_file(Path.expand("../tools/credo/hermetic_unit_test.ex", __DIR__))
 ExUnit.start()
 
 # Compile ExBdd features into tests
-ExBdd.compile_features!(features: ["specs/behaviours/**/*.feature"])
+# Step and support globs are the discovery defaults, plus test/integration/steps for the steps that write files (C12).
+ExBdd.compile_features!(
+  features: ["specs/behaviours/**/*.feature"],
+  steps: ["test/features/step_definitions/**/*.exs", "test/integration/steps/**/*.exs"],
+  support: ["test/features/support/**/*.exs"]
+)

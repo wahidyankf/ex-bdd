@@ -3,13 +3,10 @@ defmodule AsyncExampleSteps do
   import ExUnit.Assertions
 
   step "an async step", context do
-    # Simulate some work
-    Process.sleep(10)
     Map.put(context, :first_step, true)
   end
 
   step "async work happens", context do
-    Process.sleep(10)
     Map.put(context, :async_work_happened, true)
   end
 
@@ -20,12 +17,10 @@ defmodule AsyncExampleSteps do
   end
 
   step "another async step", context do
-    Process.sleep(10)
     Map.put(context, :second_step, true)
   end
 
   step "more async work happens", context do
-    Process.sleep(10)
     Map.put(context, :more_async_work_happened, true)
   end
 

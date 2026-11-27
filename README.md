@@ -131,7 +131,8 @@ mix test --only ex_bdd
 mix test --only feature_basic_calculator
 
 # Fast check while developing: compile with warnings as errors,
-# verify formatting, run strict Credo, then the test suite
+# verify formatting, run strict Credo, run the test suite, then
+# the behaviour coverage check
 mix test:quick
 
 # Full cleanup before committing: format, strict Credo, drop unused
@@ -140,9 +141,10 @@ mix precommit
 ```
 
 The standard target names of the test and gate contract are `test:quick`, `test:integration`, `test:e2e`, and
-`test:behaviour:coverage`. This repository defines the three that exist: `test:quick`, `test:integration` (the
-`test/integration` layer, which `mix test` excludes), and `test:behaviour:coverage`. It has no end-to-end suite, so
-`test:e2e` is undefined. `repo-governance/development/quality-gates.md` records their status.
+`test:behaviour:coverage`. This repository defines all four. `test:integration` (the `test/integration` layer, which
+`mix test` excludes) runs on the pull request and `main` through `mix-test-integration`. `test:e2e` is the
+consumer-project test in `test/e2e/`, run on `main` through `test-e2e`. `repo-governance/development/quality-gates.md`
+records their status.
 
 ## Gates
 
@@ -150,39 +152,45 @@ The standard target names of the test and gate contract are `test:quick`, `test:
 `./rhino gate run --surface <surface>` runs one surface. The surface codes below are `pc` pre-commit, `cm` commit-msg,
 `pp` pre-push, `pr` pull-request, and `main`.
 
-| Gate id                  | Surface  | Command                                        | What it checks               |
-| ------------------------ | -------- | ---------------------------------------------- | ---------------------------- |
-| `format-staged`          | pc, pr   | `bash scripts/format-staged.sh <staged.paths>` | Formats changed files        |
-| `commit-message`         | cm, pr   | `bash scripts/check-commit-message.sh`         | Commit message format        |
-| `public-safety`          | pr, main | `bash scripts/public-safety/check.sh`          | Leak screen of the tree      |
-| `public-safety-message`  | pr       | `bash scripts/public-safety/check.sh`          | Leak screen of message       |
-| `public-safety-range`    | pp, pr   | `bash scripts/public-safety/check.sh`          | Leak screen of commit range  |
-| `markdown-format`        | pr, main | `npx --no-install prettier --check .`          | Prettier formatting          |
-| `markdown-line-length`   | pr, main | `bash scripts/check-markdown-line-length.sh`   | Markdown lines at most 120   |
-| `mix-format`             | pr, main | `mix format --check-formatted`                 | Elixir formatting            |
-| `mix-credo`              | pr, main | `mix credo --strict`                           | Credo strict lint            |
-| `mix-compile`            | pr, main | `mix compile --warnings-as-errors`             | Compile, warnings fatal      |
-| `mix-test`               | pr, main | `mix test`                                     | ExUnit suite, no integration |
-| `repo-config`            | pr, main | `./rhino repo-config validate`                 | repo-config.yml schema       |
-| `gate-registry`          | pr, main | `./rhino gate validate`                        | Gate registry validity       |
-| `gate-wiring`            | pr       | `./rhino gate wiring validate`                 | Hook and workflow wiring     |
-| `artifact-metadata`      | pr, main | `./rhino metadata validate`                    | Governance frontmatter       |
-| `word-budget`            | pr, main | `./rhino governance word-budget validate`      | Word budget per file         |
-| `internal-links`         | pr, main | `./rhino md internal-link validate`            | Internal Markdown links      |
-| `mermaid`                | pr, main | `./rhino md mermaid validate`                  | Mermaid diagram blocks       |
-| `md-naming`              | pr, main | `./rhino md naming validate`                   | Markdown file names          |
-| `directory-map`          | pr, main | `./rhino governance directory-map validate`    | Directory indexes            |
-| `quality-gates`          | pr, main | `./rhino governance quality-gates validate`    | Rule statuses C1 to C24      |
-| `harness-adapters`       | pr, main | `bash -c` chain, see note                      | Adapters and hook tests      |
-| `hex-package`            | pr, main | `bash scripts/check-package.sh`                | Hex package builds           |
-| `public-safety-tests`    | pr, main | `bash scripts/public-safety/tests/run.sh`      | Leak scanner regression      |
-| `agent-hippo-guard-test` | pr, main | `bash scripts/agent-hippo-guard.test.sh`       | HIPPO guard tests            |
+| Gate id                  | Surface  | Command                                        | What it checks              |
+| ------------------------ | -------- | ---------------------------------------------- | --------------------------- |
+| `format-staged`          | pc, pr   | `bash scripts/format-staged.sh <staged.paths>` | Formats changed files       |
+| `commit-message`         | cm, pr   | `bash scripts/check-commit-message.sh`         | Commit message format       |
+| `public-safety`          | pr, main | `bash scripts/public-safety/check.sh`          | Leak screen of the tree     |
+| `public-safety-message`  | pr       | `bash scripts/public-safety/check.sh`          | Leak screen of message      |
+| `public-safety-range`    | pp, pr   | `bash scripts/public-safety/check.sh`          | Leak screen of commit range |
+| `markdown-format`        | pr, main | `npx --no-install prettier --check .`          | Prettier formatting         |
+| `markdown-line-length`   | pr, main | `bash scripts/check-markdown-line-length.sh`   | Markdown lines at most 120  |
+| `mix-format`             | pr, main | `mix format --check-formatted`                 | Elixir formatting           |
+| `mix-credo`              | pr, main | `mix credo --strict`                           | Credo strict lint           |
+| `mix-compile`            | pr, main | `mix compile --warnings-as-errors`             | Compile, warnings fatal     |
+| `mix-test`               | pr, main | `mix test --cover --exclude integration`       | Unit suite, 99% floor       |
+| `mix-test-integration`   | pr, main | `mix test:integration`                         | Integration suite           |
+| `behaviour-coverage`     | pr, main | `./rhino behaviour coverage validate`          | Behaviour coverage check    |
+| `test-e2e`               | main     | `mix test:e2e`                                 | Consumer-project test       |
+| `repo-config`            | pr, main | `./rhino repo-config validate`                 | repo-config.yml schema      |
+| `gate-registry`          | pr, main | `./rhino gate validate`                        | Gate registry validity      |
+| `gate-wiring`            | pr       | `./rhino gate wiring validate`                 | Hook and workflow wiring    |
+| `artifact-metadata`      | pr, main | `./rhino metadata validate`                    | Governance frontmatter      |
+| `word-budget`            | pr, main | `./rhino governance word-budget validate`      | Word budget per file        |
+| `internal-links`         | pr, main | `./rhino md internal-link validate`            | Internal Markdown links     |
+| `mermaid`                | pr, main | `./rhino md mermaid validate`                  | Mermaid diagram blocks      |
+| `md-naming`              | pr, main | `./rhino md naming validate`                   | Markdown file names         |
+| `directory-map`          | pr, main | `./rhino governance directory-map validate`    | Directory indexes           |
+| `quality-gates`          | pr, main | `./rhino governance quality-gates validate`    | Rule statuses C1 to C24     |
+| `harness-adapters`       | pr, main | `bash -c` chain, see note                      | Adapters and hook tests     |
+| `hex-package`            | pr, main | `bash scripts/check-package.sh`                | Hex package builds          |
+| `public-safety-tests`    | pr, main | `bash scripts/public-safety/tests/run.sh`      | Leak scanner regression     |
+| `agent-hippo-guard-test` | pr, main | `bash scripts/agent-hippo-guard.test.sh`       | HIPPO guard tests           |
 
 - Scope: every entry runs at global scope, because the repository is one Elixir project.
-- Test levels: `mix-test` runs every test not tagged `integration`. `test/integration` runs only through
-  `mix test:integration`, and no entry runs it.
-- Exempt layers: none declared. Network denial: not recorded. `hex-package` needs network access to resolve Hex
-  dependencies.
+- Test levels: `mix-test` runs every test not tagged `integration` or `e2e` and fails below the 99% unit floor.
+  `test:integration` runs through `mix-test-integration` on the pull request and `main` (a corpus scenario tagged
+  `@integration` runs only there). `test:e2e` runs through `test-e2e` on `main` only.
+- Coverage exclusion: non-production code such as tests, fixtures, and test-support doubles. In this repository that is
+  the modules under `test/support/`, listed by namespace in `mix.exs`; no `lib/` module is excluded.
+- Exempt layers: none declared. Network denial is not feasible on the development host (the `unshare -rn true` probe is
+  refused), so the EX9100 ban still applies. `hex-package` needs network access to resolve Hex dependencies.
 - `harness-adapters` runs `./rhino harness adapters validate`, then `.commandcode/hooks/agent-policy-selector.test.sh`,
   `.muse/hooks/run-policy-hook.test.sh`, and `.commandcode/hooks/git-fixture-isolation.test.sh`.
 

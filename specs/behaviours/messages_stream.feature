@@ -13,6 +13,7 @@ Feature: Cucumber Messages output
   # Behaviour: BH-70
   # Exemption(e2e): the Messages stream is built only by ExBdd.Messages builders; alternative-proof: test:integration
   @e2e-exempt
+  @integration
   Scenario: config messages writes the Cucumber Messages stream
     When the features compile and run with the messages config
     Then the messages config file holds a testRunStarted envelope
