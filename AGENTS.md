@@ -32,8 +32,9 @@ case between the run and the Messages emitter. `lib/mix/tasks/` holds the instal
 aggregate command dispatch it through `./rhino gate run --surface <surface>`, so a gate added there reaches every
 surface it declares. Under the
 [Test and Gate Contract](repo-governance/development/quality/checks/test-and-gate-contract.md), `pre-push` runs only the
-leak scan, and `pull-request` holds every other check. The registry does not yet match that placement;
-[Quality Gates](repo-governance/development/quality-gates.md) records each open gap.
+leak scan, and `pull-request` holds every other check. The registry follows that placement, and the main surface, run
+after each push to `main`, also runs the consumer-project test (`test:e2e`).
+[Quality Gates](repo-governance/development/quality-gates.md) records the status of each rule.
 
 `./rhino` installs the RHINO release `rhino.lock` pins and verifies it before running; exit `125` is the wrapper
 refusing. This repository pins RHINO and HIPPO: no FERRET. `./hippo` guards local runs under the shared reservation.
@@ -42,8 +43,10 @@ refusing. This repository pins RHINO and HIPPO: no FERRET. `./hippo` guards loca
 
 Work test-first under [Test-Driven Development](repo-governance/development/quality/testing/test-driven-development.md).
 The suite runs unit, behaviour (`test/ex_bdd/behavior/`), and pinned Compatibility Kit corpus layers through `mix test`.
-Integration tests in `test/integration/` run through `mix test:integration`. Dialyzer and coverage runners stay
-deferred, per the [repository adapter](repo-governance/development/quality/stacks/repository-adapter.md).
+Integration tests in `test/integration/` run through `mix test:integration`. `mix test:e2e` runs the consumer-project
+test in `test/e2e/`. Dialyzer stays deferred, per the
+[repository adapter](repo-governance/development/quality/stacks/repository-adapter.md). `mix test --cover` enforces the
+99% unit coverage floor set in `mix.exs`.
 
 ## Tooling
 

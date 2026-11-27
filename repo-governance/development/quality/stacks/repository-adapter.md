@@ -27,9 +27,10 @@ ex-bdd holds one project, the `ex_bdd` library, so [`repo-config.yml`](../../../
   while `Cucumber.StepError` and its siblings carry runtime failures
 - **`elixir-standards.md`** — Decision: success typing; Choice: Dialyzer deferred; Reason: 21 library files already
   declare `@spec`, but no Dialyzer runner is wired yet, so specs are contracts awaiting evidence, not evidence
-- **`elixir-standards.md`** — Decision: coverage floor; Choice: 99% unit-level floor, open; Reason: the
-  [Test and Gate Contract](../checks/test-and-gate-contract/006-coverage-floor.md) sets it, and no cover tool is wired
-  yet, so `mix test` passing is the only suite evidence
+- **`elixir-standards.md`** — Decision: coverage floor; Choice: 99% unit-level floor, enforced by `mix test --cover`
+  with the threshold in `mix.exs`; the test-support category under `test/support/` is the only exclusion; Reason: the
+  [Test and Gate Contract](../checks/test-and-gate-contract/006-coverage-floor.md) sets it, and the `mix-test` gate
+  checks it on the pull request and `main`
 
 Behaviour-driven development is adopted: the `test/ex_bdd/behavior/` suite and the pinned Cucumber Compatibility Kit
 corpus are a behaviour layer above the unit suite, both run by `mix test` under
