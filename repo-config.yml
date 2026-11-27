@@ -996,3 +996,13 @@ gates:
         pull-request:
           reason: "The scanner regression suite needs the pull-request checkout; local hooks must remain bounded."
         main: {}
+    - id: agent-hippo-guard-test
+      type: check
+      command:
+        executable: bash
+        args:
+          - literal: scripts/agent-hippo-guard.test.sh
+      run-on:
+        pull-request:
+          reason: "C21: a hook guard test runs at pull-request."
+        main: {}

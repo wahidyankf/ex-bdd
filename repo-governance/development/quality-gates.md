@@ -11,7 +11,7 @@ when_to_use: >-
 
 The gates follow the [Test and Gate Contract](quality/checks/test-and-gate-contract.md). `repo-config.yml` declares
 every gate under `gates.entries`. `./rhino gate list` prints the placement it dispatches, and hooks and workflows call a
-surface with `./rhino gate run --surface <surface>`.
+surface with `./rhino gate run --surface <surface>` inside one `./hippo run` boundary.
 
 ## Surfaces
 

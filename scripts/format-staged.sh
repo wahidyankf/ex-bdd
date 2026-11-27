@@ -14,8 +14,8 @@ for file in "$@"; do
 		continue
 		;;
 	*.ex | *.exs)
-		# The Elixir formatter runs inside one HIPPO boundary, as beaver-nest's pre-commit does, so it never
-		# runs outside a guarded boundary. Its single boundary is this call; the hook itself stays unbounded.
+		# The pre-commit hook holds the outer HIPPO boundary, and this call inherits its session as a nested
+		# guarded call, so the Elixir formatter never runs outside one.
 		./hippo run --class ephemeral --resource-tier light --disk-path . -- mix format "$file"
 		;;
 	*.md | *.json | *.yml | *.yaml)

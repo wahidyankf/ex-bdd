@@ -5,7 +5,9 @@
 #
 # `set -e` is not decoration: without it a failing gate prints its finding and
 # the last command's status becomes the hook's, so the operation completes
-# anyway. The pinned wrapper's exit code is this hook's exit code.
+# anyway. The hook runs inside one HIPPO boundary, which passes the pinned RHINO wrapper's exit code through as
+# this hook's exit code.
 set -euo pipefail
 
-exec ./rhino gate run --surface commit-msg --message-file "$1"
+exec ./hippo run --class ephemeral --resource-tier light --disk-path . -- \
+  ./rhino gate run --surface commit-msg --message-file "$1"
