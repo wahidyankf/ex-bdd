@@ -3,7 +3,7 @@ defmodule MarkdownSteps do
   import ExUnit.Assertions
 
   step "a Markdown feature file with a scenario and an outline with a table", context do
-    assert File.regular?(ExBdd.MarkdownFixture.path())
+    assert String.ends_with?(ExBdd.MarkdownFixture.path(), ".feature.md")
     Map.put(context, :markdown_path, ExBdd.MarkdownFixture.path())
   end
 

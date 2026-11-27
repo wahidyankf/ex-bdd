@@ -165,7 +165,12 @@
           ## Repository-owned checks (C12, C21): unit tests touch nothing
           #
           {Tools.Credo.HermeticUnitTest,
-           [files: %{included: ["test/ex_bdd/", "test/mix/"], excluded: ["test/integration/"]}]}
+           [
+             files: %{
+               included: ["test/ex_bdd/", "test/features/"],
+               excluded: ["test/integration/"]
+             }
+           ]}
         ],
         disabled: [
           #

@@ -112,7 +112,8 @@ defmodule ExBdd.MixProject do
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
-        "test --cover --exclude integration"
+        "test --cover --exclude integration",
+        "test:behaviour:coverage"
       ],
       "test:integration": ["test --include integration test/integration"],
       "test:e2e": ["test --include e2e test/e2e"],
